@@ -15,15 +15,16 @@ time for better reachability.
 Every client can incorporate the routing mechanisms supported by the library and provide it
 to other clients, making it truly a peer to peer network.
 
-Additional mechanisms that may be used for discovering the nodes:
+Additional mechanisms may be used for discovering the [nodes](http://en.wikipedia.org/wiki/Bootstrapping_node):
 * Bonjour/Zeroconf
 * Netsukuku
 * DHT
-* Dedicated tracking servers
+* DNS
+* Dedicated tracking servers IP
 
 See also:
-* CAN routing methods - http://berkeley.intel-research.net/sylvia/cans.pdf
-* Scatter - http://sigops.org/sosp/sosp11/current/2011-Cascais/02-glendenning-online.pdf
+* CAN routing methods - in doc/cans.pdf
+* Scatter - doc/02-glendenning-online.pdf
 
 Directory Structure
 ===================
