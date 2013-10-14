@@ -1,12 +1,16 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "coordinator.h"
+#include "make_unique.h"
 #include "link_receiver.h"
+#include "logging.h"
 
 using namespace std;
 
 namespace uia {
 namespace routing {
+
+constexpr ssu::magic_t routing_magic = 0x00524f55; // 'xROU'
 
 // Private helper class for routing_client_coordinator -
 // attaches to our link and dispatches control messages to different clients.
@@ -23,8 +27,16 @@ public:
     routing_receiver(shared_ptr<ssu::host> host);
 };
 
+routing_receiver::routing_receiver(shared_ptr<ssu::host> host)
+    : ssu::link_receiver(host, routing_magic)
+{}
 
-class routing_client_coordinator::coordinator_impl
+void routing_receiver::receive(byte_array const& msg, ssu::link_endpoint const& src)
+{
+    logger::debug() << "Routing receiver: received routing packet";
+}
+
+class client_coordinator::coordinator_impl
 {
 public:
     shared_ptr<ssu::host> host_;
@@ -40,6 +52,16 @@ public:
         , routing_receiver_(host)
     {}
 };
+
+client_coordinator::client_coordinator(ssu::host& host)
+    : host_(host)
+{}//pimpl_ = stdext::make_unique<coordinator_impl>(host));
+
+std::vector<client*>
+client_coordinator::routing_clients() const
+{
+    return std::vector<client*>();
+}
 
 } // routing namespace
 } // uia namespace
