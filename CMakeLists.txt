@@ -7,6 +7,7 @@ endif()
 # Support library.
 include_directories(include)
 add_subdirectory(lib)
+add_subdirectory(tools/regserver)
 
 if (BUILD_TESTING)
     #add_subdirectory(tests)
