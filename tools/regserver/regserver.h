@@ -75,6 +75,8 @@ class registration_server
 public:
     registration_server();
 
+    inline void run() { io_service_.run(); }
+
 private:
     void udpDispatch(byte_array &msg, const ssu::endpoint &ep);
     void doInsert1(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
