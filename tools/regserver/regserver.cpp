@@ -199,7 +199,7 @@ registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ss
     byte_array idi, ni, chal, info, key, sig;
     rxs.archive() >> idi >> ni >> chal >> info >> key >> sig;
     if (idi.is_empty()) {
-        logger::debug("Received invalid Insert2 message");
+        logger::debug() << "Received invalid Insert2 message";
         return;
     }
 
@@ -260,7 +260,7 @@ registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ss
     // Verify the client's signature using his public key.
     if (!identi.verify(sigsha.final(), sig))
     {
-        logger::debug() << "Signature check for client" << srcep << "failed on Insert2";
+        logger::debug() << "Signature check for client " << srcep << " failed on Insert2";
         chalhash.insert(chal, byte_array());
         return;
     }
@@ -277,7 +277,7 @@ registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ss
     write.archive() << REG_MAGIC << (uint32_t)(REG_RESPONSE | REG_INSERT2) << nhi << (uint32_t)TIMEOUT_SEC << srcep;
     send(srcep, resp);
 
-    logger::debug() << "Inserted record for" << peerid << "at" << srcep;
+    logger::debug() << "Inserted record for " << peerid << " at " << srcep;
 }
 
 void
@@ -288,11 +288,11 @@ registration_server::doLookup(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     bool notify;
     rxs >> idi >> nhi >> idr >> notify;
     if (rxs.status() != rxs.Ok || idi.isEmpty()) {
-        logger::debug("Received invalid Lookup message");
+        logger::debug() << "Received invalid Lookup message";
         return;
     }
     if (notify)
-        logger::debug("Lookup with notify");
+        logger::debug() << "Lookup with notify";
 
     // Lookup the initiator (caller).
     // To protect us and our clients from DoS attacks,
@@ -318,7 +318,7 @@ registration_server::doLookup(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
 void
 registration_server::replyLookup(registry_record *reci, uint32_t replycode, const byte_array &idr, registry_record *recr)
 {
-    logger::debug() << this << "replyLookup" << replycode;
+    logger::debug() << "Reply lookup " << replycode;
 
     byte_array resp;
     XdrStream wxs(&resp, QIODevice::WriteOnly);
@@ -337,7 +337,7 @@ registration_server::doSearch(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     QString search;
     rxs >> idi >> nhi >> search;
     if (rxs.status() != rxs.Ok || idi.isEmpty()) {
-        logger::debug("Received invalid Search message");
+        logger::debug() << "Received invalid Search message";
         return;
     }
 
@@ -366,7 +366,7 @@ registration_server::doSearch(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
             minkw = kw;
         }
     }
-    logger::debug() << "Min keyword" << minkw << "set size" << mincount;
+    logger::debug() << "Min keyword " << minkw << " set size " << mincount;
 
     // From there, narrow the minset further for each keyword.
     foreach (QString kw, kwords) {
@@ -376,7 +376,7 @@ registration_server::doSearch(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
             continue; // It's the one we started with
         minset.intersect(kwhash[kw]);
     }
-    logger::debug() << "Minset size" << minset.size();
+    logger::debug() << "Minset size " << minset.size();
 
     // If client supplied no keywords, (try to) return all records.
     const QSet<registry_record*>& results = kwords.isEmpty() ? allrecords : minset;
@@ -413,7 +413,7 @@ registration_server::doDelete(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     byte_array idi, hashedNonce;
     rxs >> idi >> hashedNonce;
     if (rxs.status() != rxs.Ok || idi.isEmpty()) {
-        logger::debug("Received invalid Delete message");
+        logger::debug() << "Received invalid Delete message";
         return;
     }
 
@@ -443,15 +443,15 @@ registration_server::findCaller(const ssu::endpoint &ep, const byte_array &idi, 
 
     registry_record *reci = idhash.value(idi);
     if (reci == nullptr) {
-        logger::debug("Received request from non-registered caller");
+        logger::debug() << "Received request from non-registered caller";
         return nullptr;
     }
     if (ep != reci->ep) {
-        logger::debug() << "Received request from wrong source endpoint" << ep << "expecting" << reci->ep;
+        logger::debug() << "Received request from wrong source endpoint " << ep << " expecting " << reci->ep;
         return nullptr;
     }
     if (nhi != reci->nhi) {
-        logger::debug("Received request with incorrect hashed nonce");
+        logger::debug() << "Received request with incorrect hashed nonce";
         return nullptr;
     }
     return reci;
@@ -492,7 +492,7 @@ registry_record::registry_record(registration_server *srv,
 
 registry_record::~registry_record()
 {
-    logger::debug() << "~registry_record: deleting record for" << PeerId(id);
+    logger::debug() << "~registry_record: deleting record for " << PeerId(id);
 
     assert(srv->idhash.value(id) == this);
     srv->idhash.remove(id);
