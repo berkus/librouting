@@ -6,38 +6,41 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See file LICENSE_1_0.txt or a copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+#include <regex>
 #include "regserver.h"
 #include "logging.h"
 #include "sha256_hash.h"
+#include "identity.h"
+#include "peer_id.h"
+#include "host.h"
+#include "link.h"
+#include "private/regserver_client.h" // For some shared constants
 
-constexpr uint16_t REGSERVER_DEFAULT_PORT = 9669;
+namespace bp = boost::posix_time;
+using namespace uia::routing::internal;
+using namespace std;
+using namespace ssu;
 
-#define TIMEOUT_SEC (1*60*60)   // Records last 1 hour
-#define MAX_RESULTS 100     // Maximum number of search results
+constexpr uint32_t TIMEOUT_SEC = (1*60*60);   // Records last 1 hour
+const ssu::async::timer::duration_type timeout_period = bp::seconds(TIMEOUT_SEC);
 
-// 'Nrs': Netsteria registration server
-constexpr ssu::magic_t REG_MAGIC = 0x004e7273;
-
-#define REG_REQUEST     0x100   // Client-to-server request
-#define REG_RESPONSE    0x200   // Server-to-client response
-#define REG_NOTIFY      0x300   // Server-to-client async callback
-
-#define REG_INSERT1     0x00    // Insert entry - preliminary request
-#define REG_INSERT2     0x01    // Insert entry - authenticated request
-#define REG_LOOKUP      0x02    // Lookup host by ID, optionally notify
-#define REG_SEARCH      0x03    // Search entry by keyword
-#define REG_DELETE      0x04    // Remove registration record, sent by client upon exit
+constexpr int MAX_RESULTS = 100;     // Maximum number of search results
 
 namespace uia {
 namespace routing {
 
+//=================================================================================================
 // registration_server implementation
-// @TODO: bind ipv6 socket
+//=================================================================================================
 
-registration_server::registration_server()
-    : sock(io_service_)
+registration_server::registration_server(std::shared_ptr<ssu::host> host)
+    : host_(host)
+    , sock(io_service_)
+    , sock6(io_service_)
 {
     boost::asio::ip::udp::endpoint ep(boost::asio::ip::address_v4::any(), REGSERVER_DEFAULT_PORT);
+    boost::asio::ip::udp::endpoint ep6(boost::asio::ip::address_v6::any(), REGSERVER_DEFAULT_PORT);
+
     logger::debug() << "regserver bind on local endpoint " << ep;
     boost::system::error_code ec;
     sock.open(ep.protocol(), ec);
@@ -56,6 +59,24 @@ registration_server::registration_server()
     error_string_ = "";
     prepare_async_receive();
     logger::debug() << "Bound socket on " << ep;
+
+    logger::debug() << "regserver bind on local endpoint " << ep6;
+    sock6.open(ep6.protocol(), ec);
+    if (ec) {
+        error_string_ = ec.message();
+        logger::warning() << ec;
+        return;
+    }
+    sock6.bind(ep6, ec);
+    if (ec) {
+        error_string_ = ec.message();
+        logger::warning() << ec;
+        return;
+    }
+    // once bound, can start receiving datagrams.
+    error_string_ = "";
+    prepare_async_receive6();
+    logger::debug() << "Bound socket on " << ep6;
 }
 
 void
@@ -63,6 +84,18 @@ registration_server::prepare_async_receive()
 {
     boost::asio::streambuf::mutable_buffers_type buffer = received_buffer.prepare(2048);
     sock.async_receive_from(
+        boost::asio::buffer(buffer),
+        received_from,
+        boost::bind(&registration_server::udp_ready_read, this,
+          boost::asio::placeholders::error,
+          boost::asio::placeholders::bytes_transferred));
+}
+
+void
+registration_server::prepare_async_receive6()
+{
+    boost::asio::streambuf::mutable_buffers_type buffer = received_buffer.prepare(2048);
+    sock6.async_receive_from(
         boost::asio::buffer(buffer),
         received_from,
         boost::bind(&registration_server::udp_ready_read, this,
@@ -162,7 +195,7 @@ registration_server::replyInsert1(const ssu::endpoint &srcep, const byte_array &
 
     byte_array resp;
     byte_array_owrap<flurry::oarchive> write(resp);
-    write.archive() << REG_MAGIC << (uint32_t)(REG_RESPONSE | REG_INSERT1) << nhi << challenge;
+    write.archive() << REG_MAGIC << (REG_RESPONSE | REG_INSERT1) << nhi << challenge;
     send(srcep, resp);
     logger::debug() << this << "replyInsert1 sent to" << srcep;
 }
@@ -181,13 +214,13 @@ registration_server::calcCookie(const ssu::endpoint &srcep, const byte_array &id
 
     // Compute the correct challenge cookie for the message.
     // XX really should use a proper HMAC here.
-    ssu::crypto::sha256 chalsha;
-
     byte_array resp;
-    byte_array_owrap<flurry::oarchive> write(resp);
-    write.archive() << secret << srcep << idi << nhi << secret;
+    {
+        byte_array_owrap<flurry::oarchive> write(resp);
+        write.archive() << secret << srcep << idi << nhi << secret;
+    }
 
-    return chalsha.final();
+    return crypto::sha256::hash(resp);
 }
 
 void
@@ -209,7 +242,7 @@ registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ss
     // the INSERT2 contains the actual nonce,
     // so that an eavesdropper can't easily forge an INSERT2
     // after seeing the client's INSERT1 fly past.
-    byte_array nhi = ssu::crypto::sha256::hash(ni);
+    byte_array nhi = crypto::sha256::hash(ni);
 
     // First check the challenge cookie:
     // if it is invalid (perhaps just because our secret expired),
@@ -220,7 +253,7 @@ registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ss
     }
 
     // See if we've already responded to a request with this cookie.
-    if (chalhash.contains(chal)) {
+    if (contains(chalhash, chal)) {
         logger::debug() << "Received apparent replay of old Insert2 request";
 
         // Just return the previous response.
@@ -228,8 +261,9 @@ registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ss
         // it means the client was bad so we're ignoring it:
         // in that case just silently drop the request.
         byte_array resp = chalhash[chal];
-        if (!resp.isEmpty())
-            sock.writeDatagram(resp, srcep.addr, srcep.port);
+        if (!resp.is_empty()) {
+            send(srcep, resp);
+        }
 
         return;
     }
@@ -237,31 +271,34 @@ registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ss
     // For now we only support RSA-based identities,
     // because DSA signature verification is much more costly.
     // XX would probably be good to send back an error response.
-    Ident identi(idi);
-    if (identi.scheme() != identi.RSA160) {
-        logger::debug() << "Received Insert for unsupported ID scheme" << identi.scheme();
-        chalhash.insert(chal, byte_array());
+    ssu::identity identi(idi);
+    if (identi.key_scheme() != ssu::identity::scheme::rsa160)
+    {
+        logger::debug() << "Received Insert for unsupported ID scheme " << identi.scheme_name();
+        chalhash.insert(make_pair(chal, byte_array()));
         return;
     }
 
     // Parse the client's public key and make sure it matches its EID.
-    if (!identi.setKey(key))
+    if (!identi.set_key(key))
     {
-        logger::debug() << "Received bad identity from client" << srcep << "on insert";
-        chalhash.insert(chal, byte_array());
+        logger::debug() << "Received bad identity from client " << srcep << " on insert2";
+        chalhash.insert(make_pair(chal, byte_array()));
         return;
     }
 
     // Compute the hash of the message components the client signed.
-    ssu::crypto::sha256 sigsha;
-    XdrStream sigwxs(&sigsha);
-    sigwxs << idi << ni << chal << info;
+    byte_array sigmsg;
+    {
+        byte_array_owrap<flurry::oarchive> write(sigmsg);
+        write.archive() << idi << ni << chal << info;
+    }
 
     // Verify the client's signature using his public key.
-    if (!identi.verify(sigsha.final(), sig))
+    if (!identi.verify(crypto::sha256::hash(sigmsg), sig))
     {
-        logger::debug() << "Signature check for client " << srcep << " failed on Insert2";
-        chalhash.insert(chal, byte_array());
+        logger::debug() << "Signature check for client " << srcep << " failed on insert2";
+        chalhash.insert(make_pair(chal, byte_array()));
         return;
     }
 
@@ -273,8 +310,11 @@ registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ss
     // Send a reply to the client indicating our timeout on its record,
     // so it knows how soon it will need to refresh the record.
     byte_array resp;
-    byte_array_owrap<flurry::oarchive> write(resp);
-    write.archive() << REG_MAGIC << (uint32_t)(REG_RESPONSE | REG_INSERT2) << nhi << (uint32_t)TIMEOUT_SEC << srcep;
+    {
+        byte_array_owrap<flurry::oarchive> write(resp);
+        write.archive() << REG_MAGIC << (REG_RESPONSE | REG_INSERT2) << nhi
+            << TIMEOUT_SEC << srcep;
+    }
     send(srcep, resp);
 
     logger::debug() << "Inserted record for " << peerid << " at " << srcep;
@@ -286,8 +326,8 @@ registration_server::doLookup(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     // Decode the rest of the lookup request.
     byte_array idi, nhi, idr;
     bool notify;
-    rxs >> idi >> nhi >> idr >> notify;
-    if (rxs.status() != rxs.Ok || idi.isEmpty()) {
+    rxs.archive() >> idi >> nhi >> idr >> notify;
+    if (idi.is_empty()) {
         logger::debug() << "Received invalid Lookup message";
         return;
     }
@@ -306,7 +346,7 @@ registration_server::doLookup(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     // (e.g., because its record timed out since
     // the caller's last Lookup or Search request that found it),
     // respond to the initiator anyway indicating as such.
-    registry_record *recr = idhash.value(idr);
+    registry_record *recr = idhash[idr];
     replyLookup(reci, REG_RESPONSE | REG_LOOKUP, idr, recr);
 
     // Send a response to the target as well, if found,
@@ -321,12 +361,29 @@ registration_server::replyLookup(registry_record *reci, uint32_t replycode, cons
     logger::debug() << "Reply lookup " << replycode;
 
     byte_array resp;
-    XdrStream wxs(&resp, QIODevice::WriteOnly);
-    bool known = (recr != nullptr);
-    wxs << REG_MAGIC << replycode << reci->nhi << idr << known;
-    if (known)
-        wxs << recr->ep << recr->info;
+    {
+        byte_array_owrap<flurry::oarchive> write(resp);
+        bool known = (recr != nullptr);
+        write.archive() << REG_MAGIC << replycode << reci->nhi << idr << known;
+        if (known) {
+            write.archive() << recr->ep << recr->info;
+        }
+    }
     send(reci->ep, resp);
+}
+
+template <typename InIt1, typename InIt2, typename OutIt>
+OutIt unordered_set_intersection(InIt1 b1, InIt1 e1, InIt2 b2, InIt2 e2, OutIt out)
+{
+    while (!(b1 == e1)) {
+        if (!(std::find(b2, e2, *b1) == e2)) {
+            *out = *b1;
+            ++out;
+        }
+        ++b1;
+    }
+
+    return out;
 }
 
 void
@@ -334,9 +391,9 @@ registration_server::doSearch(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
 {
     // Decode the rest of the search request.
     byte_array idi, nhi;
-    QString search;
-    rxs >> idi >> nhi >> search;
-    if (rxs.status() != rxs.Ok || idi.isEmpty()) {
+    std::string search;
+    rxs.archive() >> idi >> nhi >> search;
+    if (idi.is_empty()) {
         logger::debug() << "Received invalid Search message";
         return;
     }
@@ -345,21 +402,40 @@ registration_server::doSearch(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     // To protect us and our clients from DoS attacks,
     // the caller must be registered with the correct source endpoint.
     registry_record *reci = findCaller(srcep, idi, nhi);
-    if (reci == nullptr)
+    if (reci == nullptr) {
         return;
+    }
 
     // Break the search string into keywords.
     // We'll interpret them as an AND-set.
-    QStringList kwords = 
-        search.split(QRegExp("\\W+"), QString::SkipEmptyParts);
+    std::vector<std::string> kwords;
+    std::regex word_regex("(\\S+)");
+    auto words_begin = std::sregex_iterator(search.begin(), search.end(), word_regex);
+    auto words_end = std::sregex_iterator();
+    const int N = 2;
+    for (std::sregex_iterator i = words_begin; i != words_end; ++i)
+    {
+        std::smatch match = *i;
+        std::string match_str = match.str();
+        if (match_str.size() >= N) {
+            kwords.emplace_back(match_str);
+        }
+    }
 
     // Find the keyword with fewest matches to start with,
     // in order to make the set arithmetic reasonable efficient.
-    QSet<registry_record*> minset;
-    QString minkw;
-    int mincount = INT_MAX;
-    foreach (QString kw, kwords) {
-        QSet<registry_record*> set = kwhash.value(kw);
+    unordered_set<registry_record*> minset;
+    string minkw;
+    size_t mincount = INT_MAX;
+    for (string kw : kwords)
+    {
+        if (!contains(kwhash, kw))
+        {
+            minset.clear();
+            mincount = 0;
+            break;
+        }
+        unordered_set<registry_record*> set = kwhash[kw];
         if (set.size() < mincount) {
             minset = set;
             mincount = set.size();
@@ -369,20 +445,27 @@ registration_server::doSearch(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     logger::debug() << "Min keyword " << minkw << " set size " << mincount;
 
     // From there, narrow the minset further for each keyword.
-    foreach (QString kw, kwords) {
-        if (minset.isEmpty())
+    for (std::string kw : kwords)
+    {
+        if (minset.empty()) {
             break;  // Can't get any smaller than this...
-        if (kw == minkw)
+        }
+        if (kw == minkw) {
             continue; // It's the one we started with
-        minset.intersect(kwhash[kw]);
+        }
+        unordered_set<registry_record*> outset;
+        unordered_set_intersection(minset.begin(), minset.end(),
+            kwhash[kw].begin(), kwhash[kw].end(),
+            inserter(outset, outset.begin()));
+        minset = outset;
     }
     logger::debug() << "Minset size " << minset.size();
 
     // If client supplied no keywords, (try to) return all records.
-    const QSet<registry_record*>& results = kwords.isEmpty() ? allrecords : minset;
+    const unordered_set<registry_record*>& results = kwords.empty() ? all_records_ : minset;
 
     // Limit the set of results to at most MAX_RESULTS.
-    qint32 nresults = results.size();
+    size_t nresults = results.size();
     bool complete = true;
     if (nresults > MAX_RESULTS) {
         nresults = MAX_RESULTS;
@@ -391,14 +474,16 @@ registration_server::doSearch(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
 
     // Return the IDs of the selected records to the caller.
     byte_array resp;
-    XdrStream wxs(&resp, QIODevice::WriteOnly);
-    wxs << REG_MAGIC << (quint32)(REG_RESPONSE | REG_SEARCH)
-        << nhi << search << complete << nresults;
-    foreach (registry_record *rec, results) {
-        logger::debug() << "search result" << rec->id;
-        wxs << rec->id;
-        if (--nresults == 0)
-            break;
+    {
+        byte_array_owrap<flurry::oarchive> write(resp);
+        write.archive() << REG_MAGIC << (REG_RESPONSE | REG_SEARCH)
+            << nhi << search << complete << nresults;
+        for (auto rec : results) {
+            logger::debug() << "search result" << rec->id;
+            write.archive() << rec->id;
+            if (--nresults == 0)
+                break;
+        }
     }
     assert(nresults == 0);
     send(srcep, resp);
@@ -411,8 +496,8 @@ registration_server::doDelete(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
 
     // Decode the rest of the delete request.
     byte_array idi, hashedNonce;
-    rxs >> idi >> hashedNonce;
-    if (rxs.status() != rxs.Ok || idi.isEmpty()) {
+    rxs.archive() >> idi >> hashedNonce;
+    if (idi.is_empty()) {
         logger::debug() << "Received invalid Delete message";
         return;
     }
@@ -429,8 +514,10 @@ registration_server::doDelete(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
 
     // Response back notifying that the record was deleted.
     byte_array resp;
-    XdrStream wxs(&resp, QIODevice::WriteOnly);
-    wxs << REG_MAGIC << (quint32)(REG_RESPONSE | REG_DELETE) << hashedNonce << wasDeleted;
+    {
+        byte_array_owrap<flurry::oarchive> write(resp);
+        write.archive() << REG_MAGIC << (REG_RESPONSE | REG_DELETE) << hashedNonce << wasDeleted;
+    }
     send(srcep, resp);
 
     // XX Need to notify active listeners of the search results that one of the results is gone.
@@ -441,11 +528,11 @@ registration_server::findCaller(const ssu::endpoint &ep, const byte_array &idi, 
 {
     // @TODO: list the existing records here before lookup?
 
-    registry_record *reci = idhash.value(idi);
-    if (reci == nullptr) {
+    if (!contains(idhash, idi)) {
         logger::debug() << "Received request from non-registered caller";
         return nullptr;
     }
+    registry_record *reci = idhash[idi];
     if (ep != reci->ep) {
         logger::debug() << "Received request from wrong source endpoint " << ep << " expecting " << reci->ep;
         return nullptr;
@@ -464,39 +551,41 @@ namespace internal  {
 
 registry_record::registry_record(registration_server *srv,
         const byte_array &id, const byte_array &nhi,
-        const endpoint &ep, const byte_array &info)
+        const ssu::endpoint &ep, const byte_array &info)
     : srv(srv)
     , id(id)
     , nhi(nhi)
     , ep(ep)
     , info(info)
+    , timer_(srv->host_.get())
 {
     // Register us in the registration_server's ID-lookup table,
     // replacing any existing entry with this ID.
-    registry_record *old = srv->idhash.value(id);
+    registry_record *old = srv->idhash[id];
     if (old != nullptr) {
         logger::debug() << "Replacing existing record for" << id;
         delete old;
     }
     srv->idhash[id] = this;
-    srv->allrecords += this;
+    srv->all_records_.insert(this);
 
-    logger::debug() << "Registering record for" << PeerId(id) << "at" << ep;
+    logger::debug() << "Registering record for" << peer_id(id) << "at" << ep;
 
     // Register all our keywords in the registration_server's keyword table.
     regKeywords(true);
 
     // Set the record's timeout
-    timer.start(TIMEOUT_SEC * 1000, this);
+    timer_.on_timeout.connect([this](bool){ timerEvent(); });
+    timer_.start(timeout_period);
 }
 
 registry_record::~registry_record()
 {
-    logger::debug() << "~registry_record: deleting record for " << PeerId(id);
+    logger::debug() << "~registry_record: deleting record for " << peer_id(id);
 
-    assert(srv->idhash.value(id) == this);
-    srv->idhash.remove(id);
-    srv->allrecords.remove(this);
+    assert(srv->idhash[id] == this);
+    srv->idhash.erase(id);
+    srv->all_records_.erase(this);
 
     regKeywords(false);
 }
@@ -504,26 +593,26 @@ registry_record::~registry_record()
 void
 registry_record::regKeywords(bool insert)
 {
-    foreach (QString kw, RegInfo(info).keywords())
+    for (std::string kw : client_profile(info).keywords())
     {
-        QSet<registry_record*> &set = srv->kwhash[kw];
+        unordered_set<registry_record*> &set = srv->kwhash[kw];
         if (insert) {
             set.insert(this);
         } else {
-            set.remove(this);
-            if (set.isEmpty())
-                srv->kwhash.remove(kw);
+            set.erase(this);
+            if (set.empty())
+                srv->kwhash.erase(kw);
         }
     }
 }
 
 void
-registry_record::timerEvent(QTimerEvent *)
+registry_record::timerEvent()
 {
-    logger::debug() << "Timed out record for" << PeerId(id) << "at" << ep;
+    logger::debug() << "Timed out record for " << peer_id(id) << " at " << ep;
 
     // Our timeout expired - just silently delete this record.
-    deleteLater();
+    delete this;
 }
 
 } // internal namespace
@@ -536,26 +625,7 @@ registry_record::timerEvent(QTimerEvent *)
 int
 main(int argc, char **argv)
 {
-    QDir homedir = QDir::home();
-    QDir appdir;
-    QString appdirname = ".regserver";
-    homedir.mkdir(appdirname);
-    appdir.setPath(homedir.path() + "/" + appdirname);
-
-    // Send debugging output to a log file
-    QString logname(appdir.path() + "/log");
-    QString logbakname(appdir.path() + "/log-before-restart-on-"+QDateTime::currentDateTime().toString()+".bak");
-    QFile::remove(logbakname);
-    QFile::rename(logname, logbakname);
-    logfile.setFileName(logname);
-    if (!logfile.open(QFile::WriteOnly | QFile::Truncate))
-        qWarning("Can't open log file '%s'", logname.toLocal8Bit().data());
-    else
-        qInstallMsgHandler(myMsgHandler);
-
-    std::cout << "Writing to log " << logname.constData() << '\n';
-
-    QCoreApplication app(argc, argv);
-    registration_server regserv;
-    return app.exec();
+    std::shared_ptr<ssu::host> host(make_shared<ssu::host>()); // to create timer engines...
+    uia::routing::registration_server regserver(host);
+    regserver.run();
 }

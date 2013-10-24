@@ -26,6 +26,8 @@ namespace internal {
 // Private helper class for registration_server.
 class registry_record
 {
+    friend class uia::routing::registration_server;
+
     registration_server * const srv;
     const byte_array id;
     const byte_array nhi;
@@ -40,17 +42,21 @@ class registry_record
     // Break the description into keywords,
     // and either insert or remove the keyword entries for this record.
     void regKeywords(bool insert);
+
+    void timerEvent();
 };
 
 } // internal namespace
 
 class registration_server
 {
-    friend class registry_record;
+    friend class uia::routing::internal::registry_record;
 
     // The network code actually duplicates some from ssu::link, maybe this can be refactored.
+    std::shared_ptr<ssu::host> host_;
     boost::asio::io_service io_service_;
     boost::asio::ip::udp::socket sock;
+    boost::asio::ip::udp::socket sock6;
     boost::asio::streambuf received_buffer;
     ssu::endpoint received_from;
     std::string error_string_;
@@ -68,12 +74,13 @@ class registration_server
     std::unordered_map<std::string, std::unordered_set<internal::registry_record*> > kwhash;
 
     // Set of all existing records, for empty searches
-    std::unordered_set<internal::registry_record*> allrecords;
+    std::unordered_set<internal::registry_record*> all_records_;
 
     void prepare_async_receive();
+    void prepare_async_receive6();
 
 public:
-    registration_server();
+    registration_server(std::shared_ptr<ssu::host> host);
 
     inline void run() { io_service_.run(); }
 
