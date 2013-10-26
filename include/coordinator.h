@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 #include <boost/signals2/signal.hpp>
+#include "byte_array.h"
 
 namespace ssu {
 class host;
@@ -34,6 +35,11 @@ class client_coordinator
 public:
     client_coordinator(ssu::host& host); // Can't have shared_ptr to host here, as it creates a loop.
     std::vector<client*> routing_clients() const;
+
+    void add_routing_client(client* c);
+    void remove_routing_client(client* c);
+    void insert_nonce(byte_array const& nonce, client* c);
+    void clear_nonce(byte_array const& nonce);
 
     typedef boost::signals2::signal<void (client*)> routing_client_signal;
     routing_client_signal on_routing_client_created;

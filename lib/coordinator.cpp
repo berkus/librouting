@@ -36,13 +36,22 @@ class routing_receiver : public ssu::link_receiver
     // 
     // Only regserver_clients can be hashed on the nonce here, since other routing types
     // might not even use it. @todo This will probably need a different implementation.
-    unordered_map<byte_array, regserver_client*> hashed_nonce_clients_;
+    unordered_map<byte_array, client*> hashed_nonce_clients_;
 
 private:
     void receive(byte_array const& msg, ssu::link_endpoint const& src) override;
 
 public:
     routing_receiver(shared_ptr<ssu::host> host);
+
+    inline void insert_nonce(byte_array const& nonce, client* c) {
+        hashed_nonce_clients_.insert(make_pair(nonce, c));
+    }
+
+    // Remove any nonce we may have registered in the nhihash.
+    inline void clear_nonce(byte_array const& nonce) {
+        hashed_nonce_clients_.erase(nonce);
+    }
 };
 
 routing_receiver::routing_receiver(shared_ptr<ssu::host> host)
@@ -64,7 +73,7 @@ void routing_receiver::receive(byte_array const& msg, ssu::link_endpoint const& 
         logger::debug() << this << "received message for nonexistent client";
         return;
     }
-    regserver_client *cli = hashed_nonce_clients_[nhi];
+    regserver_client *cli = static_cast<regserver_client*>(hashed_nonce_clients_[nhi]);
 
     // Make sure this message comes from one of the server's addresses
     if (!contains(cli->addrs, src) or src.port() != cli->srvport) {
@@ -124,6 +133,22 @@ std::vector<client*>
 client_coordinator::routing_clients() const
 {
     return std::vector<client*>();
+}
+
+void client_coordinator::add_routing_client(client* c)
+{}
+
+void client_coordinator::remove_routing_client(client* c)
+{}
+
+void client_coordinator::insert_nonce(byte_array const& nonce, client* c)
+{
+    pimpl_->routing_receiver_.insert_nonce(nonce, c);
+}
+
+void client_coordinator::clear_nonce(byte_array const& nonce)
+{
+    pimpl_->routing_receiver_.clear_nonce(nonce);
 }
 
 } // routing namespace
