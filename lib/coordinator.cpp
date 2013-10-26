@@ -84,17 +84,17 @@ void routing_receiver::receive(byte_array const& msg, ssu::link_endpoint const& 
     // Dispatch it appropriately
     switch (code) {
     case REG_RESPONSE | REG_INSERT1:
-        return cli->gotInsert1Reply(read);
+        return cli->got_insert1_reply(read);
     case REG_RESPONSE | REG_INSERT2:
-        return cli->gotInsert2Reply(read);
+        return cli->got_insert2_reply(read);
     case REG_RESPONSE | REG_LOOKUP:
-        return cli->gotLookupReply(read, false);
+        return cli->got_lookup_reply(read, false);
     case REG_RESPONSE | REG_SEARCH:
-        return cli->gotSearchReply(read);
+        return cli->got_search_reply(read);
     case REG_RESPONSE | REG_DELETE:
-        return cli->gotDeleteReply(read);
+        return cli->got_delete_reply(read);
     case REG_NOTIFY | REG_LOOKUP:
-        return cli->gotLookupReply(read, true);
+        return cli->got_lookup_reply(read, true);
     default:
         logger::debug() << this << "bad message code" << code;
     }

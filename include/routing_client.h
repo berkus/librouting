@@ -9,6 +9,7 @@
 #pragma once
 
 #include <boost/signals2/signal.hpp>
+#include "peer_id.h"
 
 namespace uia {
 namespace routing {
@@ -21,10 +22,12 @@ class client_profile;
  */
 class client
 {
-    class client_impl;
-    std::unique_ptr<client_impl> pimpl_;
+    // class client_impl;
+    // std::unique_ptr<client_impl> pimpl_;
 
 public:
+    virtual ~client() {}
+
     // Get the metadata about this client.
     std::shared_ptr<client_profile> profile() const;
     // Set the metadata about this client.
@@ -33,11 +36,11 @@ public:
     // Request information about a specific ID.
     // Will send an on_lookup_done() signal when the request completes.
     // If 'notify', ask whoever found the ID to notify the target as well.
-    void lookup(ssu::peer_id const& id, bool notify = false);
+    virtual void lookup(ssu::peer_id const& id, bool notify = false) = 0;
 
     // Search for IDs of clients with metadata matching a search string.
     // Will send an on_search_done() signal when the request completes.
-    void search(std::string const& text);
+    virtual void search(std::string const& text) = 0;
 
     typedef boost::signals2::signal<void (ssu::peer_id const& /* target peer */,
         ssu::endpoint const& /* endpoint found for this peer */,

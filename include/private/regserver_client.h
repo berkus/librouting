@@ -9,8 +9,10 @@
 #pragma once
 
 #include <set>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/signals2/signal.hpp>
 #include "client_profile.h"
+#include "routing_client.h"
 #include "timer.h"
 #include "peer_id.h"
 
@@ -41,10 +43,10 @@ constexpr uint32_t REG_DELETE     = 0x04;    // Remove registration record, sent
  * Implementation class talking to registration/rendezvous server.
  * It forwards its signals to routing_client instantiated by consumer, e.g. SSU host.
  */
-class regserver_client
+class regserver_client : public client
 {
 public:
-    enum class state {
+    enum class state : int {
         idle = 0,   // Unregistered and not doing anything
         resolve,    // Resolving rendezvous server's host name
         insert1,    // Sent Insert1 request, waiting response
@@ -54,16 +56,17 @@ public:
 
 private:
     // Max time before rereg - 1 hr
-    static const int64_t maxRereg = (int64_t)60*60*1000000;
+    static const boost::posix_time::time_duration max_rereg;
 
-    ssu::host* const h;      // Pointer to our per-host state
+    ssu::host* const host_;      // Pointer to our per-host state
 
     state state_;
     // DNS resolution info
     std::string srvname;    // DNS hostname or IP address of server
     uint16_t srvport;    // Port number of registration server
+    boost::asio::ip::udp::resolver resolver_; 
     // int lookupid;       // QHostInfo lookupId for DNS resolution
-    std::list<ssu::endpoint> addrs; friend class uia::routing::routing_receiver; // Server addresses from resolution
+    std::vector<ssu::endpoint> addrs; friend class uia::routing::routing_receiver; // Server addresses from resolution
     client_profile inf;        // Registration metadata
 
     // Registration process state
@@ -75,9 +78,9 @@ private:
     byte_array sig;     // Our signature to send in Insert2
 
     // Outstanding lookups and searches for which we're awaiting replies.
-    std::set<ssu::peer_id> lookups;  // IDs we're doing lookups on
-    std::set<ssu::peer_id> punches;  // Lookups with notify requests
-    std::set<std::string> searches;  // Strings we're searching for
+    std::unordered_set<ssu::peer_id> lookups;  // IDs we're doing lookups on
+    std::unordered_set<ssu::peer_id> punches;  // Lookups with notify requests
+    std::unordered_set<std::string> searches;  // Strings we're searching for
 
     // Retry state
     ssu::async::timer retry_timer_;   // Retransmission timer
@@ -127,6 +130,9 @@ public:
 
     static std::string state_string(int state);
 
+    void lookup(ssu::peer_id const& id, bool notify = false) override;
+    void search(std::string const& text) override;
+
     //=============
     // Signals
     //=============
@@ -140,34 +146,33 @@ public:
 
 private:
     // Registration state machine
-    void goInsert1();
-    void sendInsert1();
-    void gotInsert1Reply(byte_array_iwrap<flurry::iarchive>& is);
+    void go_insert1();
+    void send_insert1();
+    void got_insert1_reply(byte_array_iwrap<flurry::iarchive>& is);
 
-    void goInsert2();
-    void sendInsert2();
-    void gotInsert2Reply(byte_array_iwrap<flurry::iarchive>& is);
+    void go_insert2();
+    void send_insert2();
+    void got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is);
 
-    void sendLookup(const ssu::peer_id& id, bool notify);
-    void gotLookupReply(byte_array_iwrap<flurry::iarchive>& is, bool isnotify);
+    void send_lookup(const ssu::peer_id& id, bool notify);
+    void got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool isnotify);
 
-    void sendSearch(const std::string &text);
-    void gotSearchReply(byte_array_iwrap<flurry::iarchive>& is);
+    void send_search(const std::string &text);
+    void got_search_reply(byte_array_iwrap<flurry::iarchive>& is);
 
-    void sendDelete();
-    void gotDeleteReply(byte_array_iwrap<flurry::iarchive>& is);
+    void send_delete();
+    void got_delete_reply(byte_array_iwrap<flurry::iarchive>& is);
 
     void send(const byte_array &msg);
-
 
 private:
     //==============
     // Handlers
     //==============
-    void resolveDone(const boost::system::error_code& ec,
-    boost::asio::ip::udp::resolver::iterator ep_it);  // DNS lookup done
+    void got_resolve_results(const boost::system::error_code& ec,
+                             boost::asio::ip::udp::resolver::iterator ep_it);  // DNS lookup done
     void timeout(bool fail);        // Retry timer timeout
-    void reregTimeout();            // Reregister timeout
+    void rereg_timeout();            // Reregister timeout
 };
 
 } // internal namespace
