@@ -94,16 +94,16 @@ public:
     inline void set_host_name(std::string const& str) {
         set_string(attribute_tag::hostname, str);
     }
-    inline void setownername(std::string const& str) {
+    inline void set_owner_name(std::string const& str) {
         set_string(attribute_tag::ownername, str);
     }
-    inline void setcity(std::string const& str) {
+    inline void set_city(std::string const& str) {
         set_string(attribute_tag::city, str);
     }
-    inline void setregion(std::string const& str) {
+    inline void set_region(std::string const& str) {
         set_string(attribute_tag::region, str);
     }
-    inline void setcountry(std::string const& str) {
+    inline void set_country(std::string const& str) {
         set_string(attribute_tag::country, str);
     }
     /**@}*/
