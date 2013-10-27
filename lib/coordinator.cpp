@@ -142,13 +142,18 @@ client_coordinator::routing_clients() const
 }
 
 void client_coordinator::add_routing_client(client* c)
-{}
+{
+    pimpl_->routing_clients_.insert(c);
+}
 
 void client_coordinator::remove_routing_client(client* c)
-{}
+{
+    pimpl_->routing_clients_.erase(c);
+}
 
 void client_coordinator::insert_nonce(byte_array const& nonce, client* c)
 {
+    add_routing_client(c);
     pimpl_->routing_receiver_.insert_nonce(nonce, c);
 }
 
