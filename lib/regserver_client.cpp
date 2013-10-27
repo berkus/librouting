@@ -275,7 +275,7 @@ void regserver_client::got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is)
 
 void regserver_client::lookup(const ssu::peer_id& idtarget, bool notify)
 {
-    assert(registered());
+    assert(is_registered());
 
     if (notify) {
         punches.insert(idtarget);
@@ -339,7 +339,7 @@ void regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, 
 
 void regserver_client::search(const std::string &text)
 {
-    assert(registered());
+    assert(is_registered());
 
     searches.insert(text);
     send_search(text);
