@@ -117,9 +117,9 @@ public:
     inline std::string error_string() const { return error_string_; }
     inline void set_error_string(const std::string &err) { error_string_ = err; }
 
-    inline bool idle() const { return state_ == state::idle; }
-    inline bool registered() const { return state_ == state::registered; }
-    inline bool registering() const { return !idle() && !registered(); }
+    inline bool is_idle() const { return state_ == state::idle; }
+    inline bool is_registered() const { return state_ == state::registered; }
+    inline bool is_registering() const { return !idle() && !registered(); }
 
     // A persistent RegClient will never give up trying to register,
     // and will try to re-register if its connection is lost.
