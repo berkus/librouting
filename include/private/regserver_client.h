@@ -98,9 +98,9 @@ public:
     regserver_client(ssu::host *h);
     ~regserver_client();
 
-    // // Set the metadata to attach to our registration
-    // inline RegInfo info() { return inf; }
-    // inline void setInfo(const RegInfo &info) { inf = info; }
+    // Set the metadata to attach to our registration
+    inline client_profile profile() const { return inf; }
+    inline void set_profile(client_profile const& info) { inf = info; }
 
     // Attempt to register with the specified registration server.
     // We'll send a stateChanged() signal when it succeeds or fails.
