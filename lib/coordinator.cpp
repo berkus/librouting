@@ -125,9 +125,10 @@ public:
 // client_coordinator
 //=====================================================================================================================
 
-client_coordinator::client_coordinator(ssu::host& host)
+client_coordinator::client_coordinator(shared_ptr<ssu::host> host)
     : host_(host)
-{}//pimpl_ = stdext::make_unique<coordinator_impl>(host));
+    , pimpl_(stdext::make_unique<coordinator_impl>(host))
+{}
 
 std::vector<client*>
 client_coordinator::routing_clients() const
