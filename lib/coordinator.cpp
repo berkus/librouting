@@ -132,7 +132,11 @@ client_coordinator::client_coordinator(ssu::host& host)
 std::vector<client*>
 client_coordinator::routing_clients() const
 {
-    return std::vector<client*>();
+    std::vector<client*> result;
+    for (auto c : pimpl_->routing_clients_) {
+        result.emplace_back(c);
+    }
+    return result;
 }
 
 void client_coordinator::add_routing_client(client* c)
