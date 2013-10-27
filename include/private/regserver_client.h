@@ -111,6 +111,7 @@ public:
 
     inline std::string server_name() { return srvname; }
     inline uint16_t server_port() { return srvport; }
+    inline std::string name() const override { return server_name(); }
 
     inline std::string error_string() { return error_string_; }
     inline void set_error_string(const std::string &err) { error_string_ = err; }

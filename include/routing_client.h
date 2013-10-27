@@ -33,6 +33,12 @@ public:
     // Set the metadata about this client.
     void set_profile(std::shared_ptr<client_profile> profile);
 
+    /**
+     * Return some name of the routing client.
+     * In case of rendezvous server it may be server IP or DNS name.
+     */
+    virtual std::string name() const = 0;
+
     // Request information about a specific ID.
     // Will send an on_lookup_done() signal when the request completes.
     // If 'notify', ask whoever found the ID to notify the target as well.
