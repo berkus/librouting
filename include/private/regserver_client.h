@@ -109,21 +109,22 @@ public:
     // Attempt to re-register with the same server previously indicated.
     void reregister();
 
-    inline std::string server_name() { return srvname; }
-    inline uint16_t server_port() { return srvport; }
     inline std::string name() const override { return server_name(); }
 
-    inline std::string error_string() { return error_string_; }
+    inline std::string server_name() const { return srvname; }
+    inline uint16_t server_port() const { return srvport; }
+
+    inline std::string error_string() const { return error_string_; }
     inline void set_error_string(const std::string &err) { error_string_ = err; }
 
-    inline bool idle() { return state_ == state::idle; }
-    inline bool registered() { return state_ == state::registered; }
-    inline bool registering() { return !idle() && !registered(); }
+    inline bool idle() const { return state_ == state::idle; }
+    inline bool registered() const { return state_ == state::registered; }
+    inline bool registering() const { return !idle() && !registered(); }
 
     // A persistent RegClient will never give up trying to register,
     // and will try to re-register if its connection is lost.
     inline void set_persistent(bool persist) { this->persist = persist; }
-    inline bool is_persistent() { return persist; }
+    inline bool is_persistent() const { return persist; }
 
     // Disconnect from our server or cancel the registration process,
     // and return immediately to the idle state.
