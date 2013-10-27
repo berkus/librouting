@@ -10,7 +10,11 @@ namespace uia {
 namespace routing {
 namespace internal {
 
-const boost::posix_time::time_duration regserver_client::max_rereg = bp::hours(1);
+/**
+ * Many NATs drop UDP mappings after about 15 minutes, keep re-registering at about half this
+ * interval to keep holes punched.
+ */
+const boost::posix_time::time_duration regserver_client::max_rereg = bp::minutes(15);
 
 regserver_client::regserver_client(ssu::host *h)
     : client()
