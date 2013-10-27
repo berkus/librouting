@@ -8,6 +8,7 @@
 //
 #include <unordered_map>
 #include <unordered_set>
+#include "algorithm.h"
 #include "coordinator.h"
 #include "make_unique.h"
 #include "link_receiver.h"
@@ -134,11 +135,7 @@ client_coordinator::client_coordinator(shared_ptr<ssu::host> host)
 std::vector<client*>
 client_coordinator::routing_clients() const
 {
-    std::vector<client*> result;
-    for (auto c : pimpl_->routing_clients_) {
-        result.emplace_back(c);
-    }
-    return result;
+    return set_to_vector(pimpl_->routing_clients_);
 }
 
 void client_coordinator::add_routing_client(client* c)
