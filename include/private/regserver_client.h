@@ -133,17 +133,6 @@ public:
     void lookup(ssu::peer_id const& id, bool notify = false) override;
     void search(std::string const& text) override;
 
-    //=============
-    // Signals
-    //=============
-
-    typedef boost::signals2::signal<void(int)> state_change_signal;
-    /**
-     * Indicate registration state change to the client.
-     * @param state State of the regserver connection (from enum State).
-     */
-    state_change_signal on_state_changed;
-
 private:
     // Registration state machine
     void go_insert1();

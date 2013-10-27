@@ -42,6 +42,10 @@ public:
     // Will send an on_search_done() signal when the request completes.
     virtual void search(std::string const& text) = 0;
 
+    typedef boost::signals2::signal<void (void)> ready_signal;
+    ready_signal on_ready; /* Client is ready to resolve EIDs */
+    ready_signal on_disconnected; /* Client is not ready anymore */
+
     typedef boost::signals2::signal<void (ssu::peer_id const& /* target peer */,
         ssu::endpoint const& /* endpoint found for this peer */,
         client_profile const& /* peer's profile data */)>

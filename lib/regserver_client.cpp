@@ -76,7 +76,7 @@ void regserver_client::disconnect()
     rereg_timer_.stop();
 
     // Notify the user that we're not (or no longer) registered
-    on_state_changed(to_underlying(state_));
+    on_disconnected();
 }
 
 void regserver_client::register_at(const std::string &srvname, uint16_t srvport)
@@ -253,7 +253,7 @@ void regserver_client::got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is)
     // Notify anyone interested.
     logger::debug() << "Registered with " << srvname << " for " << life_secs << " seconds";
     logger::debug() << "My public endpoint is " << public_ep;
-    on_state_changed(to_underlying(state_));
+    on_ready();
 }
 
 void regserver_client::lookup(const ssu::peer_id& idtarget, bool notify)
