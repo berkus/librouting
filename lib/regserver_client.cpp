@@ -107,6 +107,7 @@ void regserver_client::reregister()
     boost::asio::ip::address addr = boost::asio::ip::address::from_string(srvname, ec);
     if (ec) {
         // Lookup the server hostname
+        logger::debug() << "Looking up rendezvous server address.";
         state_ = state::resolve;
         boost::asio::ip::udp::resolver::query query1(srvname, "");
         resolver_.async_resolve(query1, [this](const boost::system::error_code& ec,
@@ -118,6 +119,7 @@ void regserver_client::reregister()
     }
 
     // Just use the IP address we were given in string form
+    logger::debug() << "Using plain rendezvous server address.";
     addrs.clear();
     addrs.emplace_back(ssu::endpoint(addr, srvport));
 
@@ -185,12 +187,12 @@ void regserver_client::got_insert1_reply(byte_array_iwrap<flurry::iarchive>& is)
     // Decode the rest of the reply
     is.archive() >> chal;
     if (chal.is_empty() /*rs.status() != rs.Ok*/) {
-        logger::debug() << this << "got invalid Insert1 reply";
+        logger::debug() << "Got invalid Insert1 reply";
         return;
     }
 
     // Looks good - go to Insert2 state.
-    logger::debug() << this << "Insert1 reply looks good!";
+    logger::debug() << "Insert1 reply looks good!";
     go_insert2();
 }
 
@@ -303,7 +305,7 @@ void regserver_client::send_lookup(const ssu::peer_id& idtarget, bool notify)
 
 void regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool isnotify)
 {
-    logger::debug() << this << "gotLookupReply" << (isnotify ? "NOTIFY" : "RESPONSE");
+    logger::debug() << "gotLookupReply " << (isnotify ? "NOTIFY" : "RESPONSE");
 
     // Decode the rest of the reply
     byte_array targetid, targetinfo;
@@ -377,6 +379,7 @@ void regserver_client::got_search_reply(byte_array_iwrap<flurry::iarchive>& is)
     }
 
     // Decode the list of result IDs
+    // @todo Change this into a single flurry read
     vector<ssu::peer_id> ids;
     for (int i = 0; i < nresults; i++) {
         ssu::peer_id id;

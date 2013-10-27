@@ -41,7 +41,7 @@ registration_server::registration_server(std::shared_ptr<ssu::host> host)
     boost::asio::ip::udp::endpoint ep(boost::asio::ip::address_v4::any(), REGSERVER_DEFAULT_PORT);
     boost::asio::ip::udp::endpoint ep6(boost::asio::ip::address_v6::any(), REGSERVER_DEFAULT_PORT);
 
-    logger::debug() << "regserver bind on local endpoint " << ep;
+    logger::debug() << "Regserver bind on local endpoint " << ep;
     boost::system::error_code ec;
     sock.open(ep.protocol(), ec);
     if (ec) {
@@ -60,7 +60,7 @@ registration_server::registration_server(std::shared_ptr<ssu::host> host)
     prepare_async_receive();
     logger::debug() << "Bound socket on " << ep;
 
-    logger::debug() << "regserver bind on local endpoint " << ep6;
+    logger::debug() << "Regserver bind on local endpoint " << ep6;
     sock6.open(ep6.protocol(), ec);
     if (ec) {
         error_string_ = ec.message();
@@ -108,7 +108,7 @@ registration_server::udp_ready_read(const boost::system::error_code& error, size
 {
     if (!error)
     {
-        logger::debug() << "Received " << bytes_transferred << " bytes via UDP link";
+        logger::debug() << "Received " << dec << bytes_transferred << " bytes via UDP link";
         byte_array b(boost::asio::buffer_cast<const char*>(received_buffer.data()), bytes_transferred);
         udpDispatch(b, received_from);
         received_buffer.consume(bytes_transferred);
@@ -135,7 +135,7 @@ registration_server::send(const ssu::endpoint& ep, byte_array const& msg)
 void
 registration_server::udpDispatch(byte_array &msg, const ssu::endpoint &srcep)
 {
-    logger::debug() << "Received " << msg.size() << " byte message from " << srcep;
+    logger::debug() << "Received " << dec << msg.size() << " byte message from " << srcep;
 
     uint32_t magic, code;
 
@@ -169,7 +169,7 @@ registration_server::udpDispatch(byte_array &msg, const ssu::endpoint &srcep)
 void
 registration_server::doInsert1(byte_array_iwrap<flurry::iarchive>& rxs, const ssu::endpoint &srcep)
 {
-    logger::debug() << this << "Insert1";
+    logger::debug() << "Insert1";
 
     // Decode the rest of the request message (after the 32-bit code)
     byte_array idi, nhi;
@@ -195,7 +195,7 @@ registration_server::replyInsert1(const ssu::endpoint &srcep, const byte_array &
     // XX really should use a proper HMAC here.
     byte_array challenge = calcCookie(srcep, idi, nhi);
 
-    logger::debug() << this << "replyInsert1 challenge" << challenge;
+    logger::debug() << "reply_insert1 challenge " << challenge;
 
     byte_array resp;
     {
@@ -206,7 +206,7 @@ registration_server::replyInsert1(const ssu::endpoint &srcep, const byte_array &
         write.archive() << (REG_RESPONSE | REG_INSERT1) << nhi << challenge;
     }
     send(srcep, resp);
-    logger::debug() << this << "replyInsert1 sent to" << srcep;
+    logger::debug() << "reply_insert1 sent to " << srcep;
 }
 
 byte_array
@@ -235,7 +235,7 @@ registration_server::calcCookie(const ssu::endpoint &srcep, const byte_array &id
 void
 registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ssu::endpoint &srcep)
 {
-    logger::debug() << this << "Insert2";
+    logger::debug() << "Insert2";
 
     // Decode the rest of the request message (after the 32-bit code)
     byte_array idi, ni, chal, info, key, sig;
@@ -584,13 +584,13 @@ registry_record::registry_record(registration_server *srv,
     // replacing any existing entry with this ID.
     registry_record *old = srv->idhash[id];
     if (old != nullptr) {
-        logger::debug() << "Replacing existing record for" << id;
+        logger::debug() << "Replacing existing record for " << id;
         delete old;
     }
     srv->idhash[id] = this;
     srv->all_records_.insert(this);
 
-    logger::debug() << "Registering record for" << peer_id(id) << "at" << ep;
+    logger::debug() << "Registering record for " << peer_id(id) << " at " << ep;
 
     // Register all our keywords in the registration_server's keyword table.
     regKeywords(true);
