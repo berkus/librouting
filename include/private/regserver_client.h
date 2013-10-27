@@ -121,6 +121,8 @@ public:
     inline bool is_registered() const { return state_ == state::registered; }
     inline bool is_registering() const { return !idle() && !registered(); }
 
+    inline bool is_ready() const override { return is_registered(); }
+
     // A persistent RegClient will never give up trying to register,
     // and will try to re-register if its connection is lost.
     inline void set_persistent(bool persist) { this->persist = persist; }

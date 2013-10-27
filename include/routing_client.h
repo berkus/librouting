@@ -39,6 +39,11 @@ public:
      */
     virtual std::string name() const = 0;
 
+    /**
+     * Return true if routing_client is ready to perform peer lookups.
+     */
+    virtual bool is_ready() const = 0;
+
     // Request information about a specific ID.
     // Will send an on_lookup_done() signal when the request completes.
     // If 'notify', ask whoever found the ID to notify the target as well.
