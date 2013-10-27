@@ -138,8 +138,12 @@ registration_server::udpDispatch(byte_array &msg, const ssu::endpoint &srcep)
     logger::debug() << "Received " << msg.size() << " byte message from " << srcep;
 
     uint32_t magic, code;
+
+    magic = msg.as<big_uint32_t>()[0];
+
     byte_array_iwrap<flurry::iarchive> read(msg);
-    read.archive() >> magic >> code;
+    read.archive().skip_raw_data(4);
+    read.archive() >> code;
 
     if (magic != REG_MAGIC) {
         logger::debug() << "Received message from " << srcep << " with bad magic";
@@ -194,8 +198,13 @@ registration_server::replyInsert1(const ssu::endpoint &srcep, const byte_array &
     logger::debug() << this << "replyInsert1 challenge" << challenge;
 
     byte_array resp;
-    byte_array_owrap<flurry::oarchive> write(resp);
-    write.archive() << REG_MAGIC << (REG_RESPONSE | REG_INSERT1) << nhi << challenge;
+    {
+        resp.resize(4);
+        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+
+        byte_array_owrap<flurry::oarchive> write(resp);
+        write.archive() << (REG_RESPONSE | REG_INSERT1) << nhi << challenge;
+    }
     send(srcep, resp);
     logger::debug() << this << "replyInsert1 sent to" << srcep;
 }
@@ -311,8 +320,11 @@ registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ss
     // so it knows how soon it will need to refresh the record.
     byte_array resp;
     {
+        resp.resize(4);
+        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+
         byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << REG_MAGIC << (REG_RESPONSE | REG_INSERT2) << nhi
+        write.archive() << (REG_RESPONSE | REG_INSERT2) << nhi
             << TIMEOUT_SEC << srcep;
     }
     send(srcep, resp);
@@ -362,9 +374,12 @@ registration_server::replyLookup(registry_record *reci, uint32_t replycode, cons
 
     byte_array resp;
     {
+        resp.resize(4);
+        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+
         byte_array_owrap<flurry::oarchive> write(resp);
         bool known = (recr != nullptr);
-        write.archive() << REG_MAGIC << replycode << reci->nhi << idr << known;
+        write.archive() << replycode << reci->nhi << idr << known;
         if (known) {
             write.archive() << recr->ep << recr->info;
         }
@@ -475,11 +490,14 @@ registration_server::doSearch(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     // Return the IDs of the selected records to the caller.
     byte_array resp;
     {
+        resp.resize(4);
+        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+
         byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << REG_MAGIC << (REG_RESPONSE | REG_SEARCH)
-            << nhi << search << complete << nresults;
-        for (auto rec : results) {
-            logger::debug() << "search result" << rec->id;
+        write.archive() << (REG_RESPONSE | REG_SEARCH) << nhi << search << complete << nresults;
+        for (auto rec : results)
+        {
+            logger::debug() << "Search result " << rec->id;
             write.archive() << rec->id;
             if (--nresults == 0)
                 break;
@@ -515,8 +533,11 @@ registration_server::doDelete(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     // Response back notifying that the record was deleted.
     byte_array resp;
     {
+        resp.resize(4);
+        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+
         byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << REG_MAGIC << (REG_RESPONSE | REG_DELETE) << hashedNonce << wasDeleted;
+        write.archive() << (REG_RESPONSE | REG_DELETE) << hashedNonce << wasDeleted;
     }
     send(srcep, resp);
 

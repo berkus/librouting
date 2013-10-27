@@ -169,8 +169,11 @@ void regserver_client::send_insert1()
     // Send our Insert1 message
     byte_array msg;
     {
+        msg.resize(4);
+        msg.as<big_uint32_t>()[0] = REG_MAGIC;
+
         byte_array_owrap<flurry::oarchive> write(msg);
-        write.archive() << REG_MAGIC << (REG_REQUEST | REG_INSERT1) << idi << nhi;
+        write.archive() << (REG_REQUEST | REG_INSERT1) << idi << nhi;
     }
     send(msg);
 }
@@ -191,6 +194,17 @@ void regserver_client::got_insert1_reply(byte_array_iwrap<flurry::iarchive>& is)
     go_insert2();
 }
 
+/**
+ * Serialize client profile into a byte_array type.
+ */
+byte_array info_blob(client_profile const& profile)
+{
+    byte_array result;
+    byte_array_owrap<flurry::oarchive> write(result);
+    write.archive() << profile;
+    return result;
+}
+
 void regserver_client::go_insert2()
 {
     logger::debug() << "Insert2";
@@ -203,8 +217,7 @@ void regserver_client::go_insert2()
     byte_array pack;
     {
         byte_array_owrap<flurry::oarchive> write(pack);
-        write.archive() << idi << ni << chal;
-        inf.enflurry(write.archive());
+        write.archive() << idi << ni << chal << info_blob(inf);
     }
 
     // Generate our signature.
@@ -223,10 +236,12 @@ void regserver_client::send_insert2()
     // Send our Insert2 message
     byte_array msg;
     {
+        msg.resize(4);
+        msg.as<big_uint32_t>()[0] = REG_MAGIC;
+
         byte_array_owrap<flurry::oarchive> write(msg);
-        write.archive() << REG_MAGIC << (REG_REQUEST | REG_INSERT2) << idi << ni << chal;
-        inf.enflurry(write.archive()); // @todo
-        write.archive() << key << sig;
+        write.archive() << (REG_REQUEST | REG_INSERT2) << idi << ni << chal << info_blob(inf)
+                        << key << sig;
     }
     send(msg);
 }
@@ -277,9 +292,11 @@ void regserver_client::send_lookup(const ssu::peer_id& idtarget, bool notify)
     // Prepare the Lookup message
     byte_array msg;
     {
+        msg.resize(4);
+        msg.as<big_uint32_t>()[0] = REG_MAGIC;
+
         byte_array_owrap<flurry::oarchive> write(msg);
-        write.archive() << REG_MAGIC << (REG_REQUEST | REG_LOOKUP) << idi << nhi
-            << idtarget.id() << notify;
+        write.archive() << (REG_REQUEST | REG_LOOKUP) << idi << nhi << idtarget.id() << notify;
     }
     send(msg);
 }
@@ -332,8 +349,11 @@ void regserver_client::send_search(const std::string &text)
     // Prepare the Lookup message
     byte_array msg;
     {
+        msg.resize(4);
+        msg.as<big_uint32_t>()[0] = REG_MAGIC;
+
         byte_array_owrap<flurry::oarchive> write(msg);
-        write.archive() << REG_MAGIC << (uint32_t)(REG_REQUEST | REG_SEARCH) << idi << nhi << text;
+        write.archive() << (REG_REQUEST | REG_SEARCH) << idi << nhi << text;
     }
     send(msg);
 }
@@ -379,8 +399,11 @@ void regserver_client::send_delete()
     // Prepare the Delete message
     byte_array msg;
     {
+        msg.resize(4);
+        msg.as<big_uint32_t>()[0] = REG_MAGIC;
+
         byte_array_owrap<flurry::oarchive> write(msg);
-        write.archive() << REG_MAGIC << (uint32_t)(REG_REQUEST | REG_DELETE) << idi << nhi;
+        write.archive() << (REG_REQUEST | REG_DELETE) << idi << nhi;
     }
     send(msg);
 }

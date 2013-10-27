@@ -62,10 +62,11 @@ void routing_receiver::receive(byte_array const& msg, ssu::link_endpoint const& 
 {
     logger::debug() << "Routing receiver: received routing packet";
     // Decode the first part of the message
-    uint32_t dummy, code;
+    uint32_t code;
     byte_array nhi;
     byte_array_iwrap<flurry::iarchive> read(msg);
-    read.archive() >> dummy >> code >> nhi;
+    read.archive().skip_raw_data(4);
+    read.archive() >> code >> nhi;
 
     // Find the appropriate client
     if (!contains(hashed_nonce_clients_, nhi))
