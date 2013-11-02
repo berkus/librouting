@@ -4,7 +4,6 @@ if (NOT BUILD_IN_METTANODE)
     include(cmake/setup.cmake)
 endif()
 
-# Support library.
 include_directories(include)
 add_subdirectory(lib)
 add_subdirectory(tools/regserver)
