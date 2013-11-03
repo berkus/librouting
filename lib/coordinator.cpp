@@ -72,14 +72,14 @@ void routing_receiver::receive(byte_array const& msg, ssu::link_endpoint const& 
     // Find the appropriate client
     if (!contains(hashed_nonce_clients_, nhi))
     {
-        logger::debug() << this << "received message for nonexistent client";
+        logger::debug() << "Received message for nonexistent client";
         return;
     }
     regserver_client *cli = static_cast<regserver_client*>(hashed_nonce_clients_[nhi]);
 
     // Make sure this message comes from one of the server's addresses
     if (!contains(cli->addrs, src) or src.port() != cli->srvport) {
-        logger::debug() << this << "received message from wrong endpoint" << src;
+        logger::debug() << "Received message from wrong endpoint " << src;
         return;
     }
 
