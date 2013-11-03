@@ -309,7 +309,7 @@ void regserver_client::send_lookup(const ssu::peer_id& idtarget, bool notify)
 
 void regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool isnotify)
 {
-    logger::debug() << "gotLookupReply " << (isnotify ? "NOTIFY" : "RESPONSE");
+    logger::debug() << "got_lookup_reply " << (isnotify ? "NOTIFY" : "RESPONSE");
 
     // Decode the rest of the reply
     byte_array targetid, targetinfo;
@@ -326,7 +326,7 @@ void regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, 
     client_profile reginfo(targetinfo);
 
     // If it's an async lookup notification from the server,
-    // just forward it to anyone listening on our lookupNotify signal.
+    // just forward it to anyone listening on our on_lookup_notify signal.
     if (isnotify)
         return on_lookup_notify(targetid, targetloc, reginfo);
 
