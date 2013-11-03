@@ -138,7 +138,7 @@ regserver_client::got_resolve_results(const boost::system::error_code& ec,
         for (boost::asio::ip::udp::resolver::iterator end; ep_it != end; ++ep_it)
         {
             // possible lookup key - ep_it->host_name()
-            addrs.emplace_back(ep_it->endpoint());
+            addrs.emplace_back(ssu::endpoint(ep_it->endpoint().address(), srvport));
         }
     } else {
         fail(ec.message());
