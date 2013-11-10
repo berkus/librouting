@@ -38,11 +38,13 @@ public:
 
         // UTF-8 string tags representing advertised information
         // this is fairly preliminary at the moment.
-        hostname    = 0x00010001,   ///< Name of host (machine)
-        ownername   = 0x00010002,   ///< Name of owner (human)
-        city        = 0x00010003,   ///< Metropolitan area
-        region      = 0x00010004,   ///< State or other locality
-        country     = 0x00010005,   ///< Political state
+        hostname        = 0x00010001,  ///< Name of host (machine)
+        owner_nickname  = 0x00010002,  ///< Name of owner (human)
+        city            = 0x00010003,  ///< Metropolitan area
+        region          = 0x00010004,  ///< State or other locality
+        country         = 0x00010005,  ///< Political state
+        owner_firstname = 0x00010006,  ///< Owner real first name
+        owner_lastname  = 0x00010007,  ///< Owner real last name
     };
 
     // Constructors
@@ -86,7 +88,9 @@ public:
     /** @name Type-specific methods for individual attributes. */
     /**@{*/
     inline std::string host_name()  const { return string(attribute_tag::hostname); }
-    inline std::string owner_name() const { return string(attribute_tag::ownername); }
+    inline std::string owner_nickname() const { return string(attribute_tag::owner_nickname); }
+    inline std::string owner_firstname() const { return string(attribute_tag::owner_firstname); }
+    inline std::string owner_lastname() const { return string(attribute_tag::owner_lastname); }
     inline std::string city()       const { return string(attribute_tag::city); }
     inline std::string region()     const { return string(attribute_tag::region); }
     inline std::string country()    const { return string(attribute_tag::country); }
@@ -94,8 +98,14 @@ public:
     inline void set_host_name(std::string const& str) {
         set_string(attribute_tag::hostname, str);
     }
-    inline void set_owner_name(std::string const& str) {
-        set_string(attribute_tag::ownername, str);
+    inline void set_owner_nickname(std::string const& str) {
+        set_string(attribute_tag::owner_nickname, str);
+    }
+    inline void set_owner_firstname(std::string const& str) {
+        set_string(attribute_tag::owner_firstname, str);
+    }
+    inline void set_owner_lastname(std::string const& str) {
+        set_string(attribute_tag::owner_lastname, str);
     }
     inline void set_city(std::string const& str) {
         set_string(attribute_tag::city, str);
