@@ -132,6 +132,14 @@ public:
     inline void enflurry(flurry::oarchive& oa) const {
         oa << attributes_;
     }
+    inline byte_array enflurry() const {
+        byte_array out;
+        {
+            byte_array_owrap<flurry::oarchive> write(out);
+            write.archive() << attributes_;
+        }
+        return out;
+    }
     inline void deflurry(flurry::iarchive& ia) {
         attributes_.clear();
         ia >> attributes_;
