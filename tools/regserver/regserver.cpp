@@ -42,37 +42,15 @@ registration_server::registration_server(std::shared_ptr<ssu::host> host)
     boost::asio::ip::udp::endpoint ep6(boost::asio::ip::address_v6::any(), REGSERVER_DEFAULT_PORT);
 
     logger::debug() << "Regserver bind on local endpoint " << ep;
-    boost::system::error_code ec;
-    sock.open(ep.protocol(), ec);
-    if (ec) {
-        error_string_ = ec.message();
-        logger::warning() << ec;
+    if (!ssu::bind_socket(sock, ep, error_string_))
         return;
-    }
-    sock.bind(ep, ec);
-    if (ec) {
-        error_string_ = ec.message();
-        logger::warning() << ec;
-        return;
-    }
     // once bound, can start receiving datagrams.
-    error_string_ = "";
     prepare_async_receive();
     logger::debug() << "Bound socket on " << ep;
 
     logger::debug() << "Regserver bind on local endpoint " << ep6;
-    sock6.open(ep6.protocol(), ec);
-    if (ec) {
-        error_string_ = ec.message();
-        logger::warning() << ec;
+    if (!ssu::bind_socket(sock6, ep6, error_string_))
         return;
-    }
-    sock6.bind(ep6, ec);
-    if (ec) {
-        error_string_ = ec.message();
-        logger::warning() << ec;
-        return;
-    }
     // once bound, can start receiving datagrams.
     error_string_ = "";
     prepare_async_receive6();
