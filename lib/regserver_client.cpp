@@ -423,7 +423,7 @@ void regserver_client::got_delete_reply(byte_array_iwrap<flurry::iarchive>& is)
 
 void regserver_client::send(const byte_array &msg)
 {
-    logger::file_dump(msg, "dump.bin");
+    logger::file_dump(msg, "sending packet to regserver");
 
     // Send the message to all addresses we know for the server,
     // using all of the currently active network sockets.
