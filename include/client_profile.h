@@ -55,6 +55,7 @@ public:
     /** @name Basic attribute management methods. */
     /**@{*/
     inline bool is_empty() const { return attributes_.empty(); }
+
     inline std::vector<std::underlying_type<attribute_tag>::type>
     tags() const {
         std::vector<std::underlying_type<attribute_tag>::type> keys;
