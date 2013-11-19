@@ -141,7 +141,7 @@ regserver_client::got_resolve_results(const boost::system::error_code& ec,
             addrs.emplace_back(ssu::endpoint(ep_it->endpoint().address(), srvport));
         }
     } else {
-        fail(ec.message());
+        return fail(ec.message());
     }
 
     logger::debug() << "Primary rendezvous server address " << addrs[0];
