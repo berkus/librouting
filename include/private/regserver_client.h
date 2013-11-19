@@ -98,6 +98,8 @@ public:
     regserver_client(ssu::host *h);
     ~regserver_client();
 
+    /*shared_ptr<*/ssu::host* get_host() override { return host_; }
+
     // Set the metadata to attach to our registration
     inline client_profile profile() const { return inf; }
     inline void set_profile(client_profile const& info) { inf = info; }

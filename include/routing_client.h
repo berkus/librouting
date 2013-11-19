@@ -28,6 +28,8 @@ class client
 public:
     virtual ~client() {}
 
+    virtual /*shared_ptr<*/ssu::host* get_host() = 0;
+
     // Get the metadata about this client.
     std::shared_ptr<client_profile> profile() const;
     // Set the metadata about this client.
