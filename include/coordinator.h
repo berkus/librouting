@@ -28,12 +28,12 @@ class client;
  */
 class client_coordinator
 {
-    std::shared_ptr<ssu::host> host_;
+    ssu::host& host_;
 
     class coordinator_impl;
     std::shared_ptr<coordinator_impl> pimpl_;
 public:
-    client_coordinator(std::shared_ptr<ssu::host> host); // Can't have shared_ptr to host here, as it creates a loop.
+    client_coordinator(std::shared_ptr<ssu::host> host);
     std::vector<client*> routing_clients() const;
 
     void add_routing_client(client* c);

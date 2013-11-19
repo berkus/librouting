@@ -57,7 +57,9 @@ public:
 
 routing_receiver::routing_receiver(shared_ptr<ssu::host> host)
     : ssu::link_receiver(host, routing_magic)
-{}
+{
+    logger::debug() << "Routing receiver created";
+}
 
 void routing_receiver::receive(byte_array const& msg, ssu::link_endpoint const& src)
 {
@@ -109,7 +111,7 @@ void routing_receiver::receive(byte_array const& msg, ssu::link_endpoint const& 
 class client_coordinator::coordinator_impl
 {
 public:
-    shared_ptr<ssu::host> host_;
+    ssu::host& host_;
     routing_receiver routing_receiver_;
 
     // Global registry of every routing_client for this host, so we can
@@ -118,7 +120,7 @@ public:
 
 public:
     coordinator_impl(shared_ptr<ssu::host> host)
-        : host_(host)
+        : host_(*host.get())
         , routing_receiver_(host)
     {}
 };
@@ -128,7 +130,7 @@ public:
 //=====================================================================================================================
 
 client_coordinator::client_coordinator(shared_ptr<ssu::host> host)
-    : host_(host)
+    : host_(*host.get())
     , pimpl_(stdext::make_unique<coordinator_impl>(host))
 {}
 
