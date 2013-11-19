@@ -48,9 +48,12 @@ public:
     };
 
     // Constructors
-    inline client_profile() {}
-    inline client_profile(client_profile const& other) : attributes_(other.attributes_) {}
+    inline client_profile() = default;
+    inline client_profile(client_profile const& other) = default;
     inline client_profile(byte_array const& data) { deflurry(data); }
+
+    inline client_profile& operator =(client_profile const& other) = default;
+    inline client_profile& operator =(client_profile&& other) = default;
 
     /** @name Basic attribute management methods. */
     /**@{*/
