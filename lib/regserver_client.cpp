@@ -332,10 +332,10 @@ void regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, 
 
     // Otherwise, it should be a response to a lookup request.
     if (!(contains(lookups, targetid) || contains(punches, targetid))) {
-        logger::debug() << this << "useless Lookup result";
+        logger::debug() << "Useless lookup result";
         return;
     }
-    logger::debug() << this << "processed Lookup for" << ssu::peer_id(targetid);
+    logger::debug() << "Processed lookup for " << ssu::peer_id(targetid);
     lookups.erase(targetid);
     punches.erase(targetid);
     on_lookup_done(targetid, targetloc, reginfo);
