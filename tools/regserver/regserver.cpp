@@ -45,7 +45,7 @@ registration_server::registration_server(std::shared_ptr<ssu::host> host)
     if (!ssu::bind_socket(sock, ep, error_string_))
         return;
     // once bound, can start receiving datagrams.
-    prepare_async_receive();
+    prepare_async_receive(sock);
     logger::debug() << "Bound socket on " << ep;
 
     logger::debug() << "Regserver bind on local endpoint " << ep6;
@@ -53,27 +53,15 @@ registration_server::registration_server(std::shared_ptr<ssu::host> host)
         return;
     // once bound, can start receiving datagrams.
     error_string_ = "";
-    prepare_async_receive6();
+    prepare_async_receive(sock6);
     logger::debug() << "Bound socket on " << ep6;
 }
 
 void
-registration_server::prepare_async_receive()
+registration_server::prepare_async_receive(boost::asio::ip::udp::socket& s)
 {
     boost::asio::streambuf::mutable_buffers_type buffer = received_buffer.prepare(2048);
-    sock.async_receive_from(
-        boost::asio::buffer(buffer),
-        received_from,
-        boost::bind(&registration_server::udp_ready_read, this,
-          boost::asio::placeholders::error,
-          boost::asio::placeholders::bytes_transferred));
-}
-
-void
-registration_server::prepare_async_receive6()
-{
-    boost::asio::streambuf::mutable_buffers_type buffer = received_buffer.prepare(2048);
-    sock6.async_receive_from(
+    s.async_receive_from(
         boost::asio::buffer(buffer),
         received_from,
         boost::bind(&registration_server::udp_ready_read, this,
@@ -90,7 +78,11 @@ registration_server::udp_ready_read(const boost::system::error_code& error, size
         byte_array b(boost::asio::buffer_cast<const char*>(received_buffer.data()), bytes_transferred);
         udpDispatch(b, received_from);
         received_buffer.consume(bytes_transferred);
-        prepare_async_receive();
+        if (received_from.is_v6()) {
+            prepare_async_receive(sock6);
+        } else {
+            prepare_async_receive(sock);
+        }
     }
     else
     {

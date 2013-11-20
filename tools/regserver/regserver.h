@@ -76,8 +76,8 @@ class registration_server
     // Set of all existing records, for empty searches
     std::unordered_set<internal::registry_record*> all_records_;
 
-    void prepare_async_receive();
-    void prepare_async_receive6();
+    void prepare_async_receive(boost::asio::ip::udp::socket& sock);
+
 
 public:
     registration_server(std::shared_ptr<ssu::host> host);
