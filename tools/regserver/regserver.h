@@ -85,19 +85,19 @@ public:
     inline void run() { io_service_.run(); }
 
 private:
-    void udpDispatch(byte_array &msg, const ssu::endpoint &ep);
-    void doInsert1(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void doInsert2(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void doLookup(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void doSearch(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void doDelete(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint& ep);
+    void udp_dispatch(byte_array &msg, const ssu::endpoint &ep);
+    void do_insert1(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
+    void do_insert2(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
+    void do_lookup(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
+    void do_search(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
+    void do_delete(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint& ep);
 
-    void replyInsert1(const ssu::endpoint &ep, const byte_array &idi, const byte_array &nhi);
-    void replyLookup(internal::registry_record *reci, uint32_t replycode,
+    void reply_insert1(const ssu::endpoint &ep, const byte_array &idi, const byte_array &nhi);
+    void reply_lookup(internal::registry_record *reci, uint32_t replycode,
             const byte_array &idr, internal::registry_record *recr);
-    byte_array calcCookie(const ssu::endpoint &ep, const byte_array &idi,
+    byte_array calc_cookie(const ssu::endpoint &ep, const byte_array &idi,
                 const byte_array &nhi);
-    internal::registry_record *findCaller(const ssu::endpoint &ep, const byte_array &idi,
+    internal::registry_record *find_caller(const ssu::endpoint &ep, const byte_array &idi,
                 const byte_array &nhi);
 
 private:

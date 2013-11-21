@@ -70,13 +70,15 @@ registration_server::prepare_async_receive(boost::asio::ip::udp::socket& s)
 }
 
 void
-registration_server::udp_ready_read(const boost::system::error_code& error, size_t bytes_transferred)
+registration_server::udp_ready_read(const boost::system::error_code& error,
+                                    size_t bytes_transferred)
 {
     if (!error)
     {
         logger::debug() << "Received " << dec << bytes_transferred << " bytes via UDP link";
-        byte_array b(boost::asio::buffer_cast<const char*>(received_buffer.data()), bytes_transferred);
-        udpDispatch(b, received_from);
+        byte_array b(boost::asio::buffer_cast<const char*>(received_buffer.data()),
+            bytes_transferred);
+        udp_dispatch(b, received_from);
         received_buffer.consume(bytes_transferred);
         if (received_from.is_v6()) {
             prepare_async_receive(sock6);
@@ -103,7 +105,7 @@ registration_server::send(const ssu::endpoint& ep, byte_array const& msg)
 }
 
 void
-registration_server::udpDispatch(byte_array &msg, const ssu::endpoint &srcep)
+registration_server::udp_dispatch(byte_array &msg, ssu::endpoint const& srcep)
 {
     logger::debug() << "Received " << dec << msg.size() << " byte message from " << srcep;
 
@@ -122,22 +124,23 @@ registration_server::udpDispatch(byte_array &msg, const ssu::endpoint &srcep)
 
     switch (code) {
     case REG_REQUEST | REG_INSERT1:
-        return doInsert1(read, srcep);
+        return do_insert1(read, srcep);
     case REG_REQUEST | REG_INSERT2:
-        return doInsert2(read, srcep);
+        return do_insert2(read, srcep);
     case REG_REQUEST | REG_LOOKUP:
-        return doLookup(read, srcep);
+        return do_lookup(read, srcep);
     case REG_REQUEST | REG_SEARCH:
-        return doSearch(read, srcep);
+        return do_search(read, srcep);
     case REG_REQUEST | REG_DELETE:
-        return doDelete(read, srcep);
+        return do_delete(read, srcep);
     default:
         logger::debug() << "Received message from " << srcep << " with bad request code";
     }
 }
 
 void
-registration_server::doInsert1(byte_array_iwrap<flurry::iarchive>& rxs, const ssu::endpoint &srcep)
+registration_server::do_insert1(byte_array_iwrap<flurry::iarchive>& rxs,
+                                ssu::endpoint const& srcep)
 {
     logger::debug() << "Insert1";
 
@@ -150,7 +153,7 @@ registration_server::doInsert1(byte_array_iwrap<flurry::iarchive>& rxs, const ss
     }
 
     // Compute and reply with an appropriate challenge.
-    replyInsert1(srcep, idi, nhi);
+    reply_insert1(srcep, idi, nhi);
 }
 
 /**
@@ -159,11 +162,12 @@ registration_server::doInsert1(byte_array_iwrap<flurry::iarchive>& rxs, const ss
  * before spending CPU time checking the client's signature.
  */
 void
-registration_server::replyInsert1(const ssu::endpoint &srcep, const byte_array &idi, const byte_array &nhi)
+registration_server::reply_insert1(const ssu::endpoint &srcep, const byte_array &idi,
+                                   const byte_array &nhi)
 {
     // Compute the correct challenge cookie for the message.
     // XX really should use a proper HMAC here.
-    byte_array challenge = calcCookie(srcep, idi, nhi);
+    byte_array challenge = calc_cookie(srcep, idi, nhi);
 
     logger::debug() << "reply_insert1 challenge " << challenge;
 
@@ -180,7 +184,8 @@ registration_server::replyInsert1(const ssu::endpoint &srcep, const byte_array &
 }
 
 byte_array
-registration_server::calcCookie(const ssu::endpoint &srcep, const byte_array &idi, const byte_array &nhi)
+registration_server::calc_cookie(const ssu::endpoint &srcep, const byte_array &idi,
+                                 const byte_array &nhi)
 {
     // Make sure we have a host secret to key the challenge with
     if (secret.is_empty())
@@ -203,7 +208,8 @@ registration_server::calcCookie(const ssu::endpoint &srcep, const byte_array &id
 }
 
 void
-registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ssu::endpoint &srcep)
+registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
+                                const ssu::endpoint &srcep)
 {
     logger::debug() << "Insert2";
 
@@ -226,9 +232,9 @@ registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ss
     // First check the challenge cookie:
     // if it is invalid (perhaps just because our secret expired),
     // just send back a new INSERT1 response.
-    if (calcCookie(srcep, idi, nhi) != chal) {
+    if (calc_cookie(srcep, idi, nhi) != chal) {
         logger::debug() << "Received Insert2 message with bad cookie";
-        return replyInsert1(srcep, idi, nhi);
+        return reply_insert1(srcep, idi, nhi);
     }
 
     // See if we've already responded to a request with this cookie.
@@ -303,7 +309,8 @@ registration_server::doInsert2(byte_array_iwrap<flurry::iarchive>& rxs, const ss
 }
 
 void
-registration_server::doLookup(byte_array_iwrap<flurry::iarchive>& rxs, const ssu::endpoint &srcep)
+registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& rxs,
+                               const ssu::endpoint &srcep)
 {
     // Decode the rest of the lookup request.
     byte_array idi, nhi, idr;
@@ -319,7 +326,7 @@ registration_server::doLookup(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     // Lookup the initiator (caller).
     // To protect us and our clients from DoS attacks,
     // the caller must be registered with the correct source endpoint.
-    registry_record *reci = findCaller(srcep, idi, nhi);
+    registry_record *reci = find_caller(srcep, idi, nhi);
     if (reci == nullptr)
         return;
 
@@ -329,16 +336,18 @@ registration_server::doLookup(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     // the caller's last Lookup or Search request that found it),
     // respond to the initiator anyway indicating as such.
     registry_record *recr = idhash[idr];
-    replyLookup(reci, REG_RESPONSE | REG_LOOKUP, idr, recr);
+    reply_lookup(reci, REG_RESPONSE | REG_LOOKUP, idr, recr);
 
     // Send a response to the target as well, if found,
     // so that the two can perform UDP hole punching if desired.
-    if (recr && notify)
-        replyLookup(recr, REG_NOTIFY | REG_LOOKUP, idi, reci);
+    if (recr && notify) {
+        reply_lookup(recr, REG_NOTIFY | REG_LOOKUP, idi, reci);
+    }
 }
 
 void
-registration_server::replyLookup(registry_record *reci, uint32_t replycode, const byte_array &idr, registry_record *recr)
+registration_server::reply_lookup(registry_record *reci, uint32_t replycode,
+                                  const byte_array &idr, registry_record *recr)
 {
     logger::debug() << "Reply lookup " << replycode;
 
@@ -372,7 +381,8 @@ OutIt unordered_set_intersection(InIt1 b1, InIt1 e1, InIt2 b2, InIt2 e2, OutIt o
 }
 
 void
-registration_server::doSearch(byte_array_iwrap<flurry::iarchive>& rxs, const ssu::endpoint &srcep)
+registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs,
+                               const ssu::endpoint &srcep)
 {
     // Decode the rest of the search request.
     byte_array idi, nhi;
@@ -386,7 +396,7 @@ registration_server::doSearch(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     // Lookup the initiator (caller) ID.
     // To protect us and our clients from DoS attacks,
     // the caller must be registered with the correct source endpoint.
-    registry_record *reci = findCaller(srcep, idi, nhi);
+    registry_record *reci = find_caller(srcep, idi, nhi);
     if (reci == nullptr) {
         return;
     }
@@ -478,7 +488,8 @@ registration_server::doSearch(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
 }
 
 void
-registration_server::doDelete(byte_array_iwrap<flurry::iarchive>& rxs, const ssu::endpoint& srcep)
+registration_server::do_delete(byte_array_iwrap<flurry::iarchive>& rxs,
+    const ssu::endpoint& srcep)
 {
     logger::debug() << "Received delete request";
 
@@ -493,7 +504,7 @@ registration_server::doDelete(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
     // Lookup the initiator (caller) ID.
     // To protect us and our clients from DoS attacks,
     // the caller must be registered with the correct source endpoint.
-    registry_record *reci = findCaller(srcep, idi, hashedNonce);
+    registry_record *reci = find_caller(srcep, idi, hashedNonce);
     if (reci == nullptr)
         return;
 
@@ -515,7 +526,8 @@ registration_server::doDelete(byte_array_iwrap<flurry::iarchive>& rxs, const ssu
 }
 
 registry_record*
-registration_server::findCaller(const ssu::endpoint &ep, const byte_array &idi, const byte_array &nhi)
+registration_server::find_caller(const ssu::endpoint &ep, const byte_array &idi,
+    const byte_array &nhi)
 {
     // @TODO: list the existing records here before lookup?
 
