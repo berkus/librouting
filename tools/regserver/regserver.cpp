@@ -290,7 +290,19 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
     // Insert an appropriate record into our in-memory client database.
     // This automatically replaces any existing record for the same ID,
     // in effect resetting the timeout for the client as well.
-    (void)new registry_record(this, idi, nhi, srcep, info);
+    registry_record* rec{new registry_record(*this, idi, nhi, srcep, info)};
+    // Register record in the registration_server's ID-lookup table,
+    // replacing any existing entry with this ID.
+    registry_record* old = idhash[idi];
+    if (old != nullptr) {
+        logger::debug() << "Replacing existing record for " << idi;
+        timeout_record(old);
+    }
+    idhash[idi] = rec;
+    all_records_.insert(rec);
+
+    // Register all our keywords in the registration_server's keyword table.
+    register_keywords(true, rec);
 
     // Send a reply to the client indicating our timeout on its record,
     // so it knows how soon it will need to refresh the record.
@@ -326,7 +338,7 @@ registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& rxs,
     // Lookup the initiator (caller).
     // To protect us and our clients from DoS attacks,
     // the caller must be registered with the correct source endpoint.
-    registry_record *reci = find_caller(srcep, idi, nhi);
+    auto reci = find_caller(srcep, idi, nhi);
     if (reci == nullptr)
         return;
 
@@ -335,7 +347,7 @@ registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& rxs,
     // (e.g., because its record timed out since
     // the caller's last Lookup or Search request that found it),
     // respond to the initiator anyway indicating as such.
-    registry_record *recr = idhash[idr];
+    auto recr = idhash[idr];
     reply_lookup(reci, REG_RESPONSE | REG_LOOKUP, idr, recr);
 
     // Send a response to the target as well, if found,
@@ -360,7 +372,7 @@ registration_server::reply_lookup(registry_record *reci, uint32_t replycode,
         bool known = (recr != nullptr);
         write.archive() << replycode << reci->nhi << idr << known;
         if (known) {
-            write.archive() << recr->ep << recr->info;
+            write.archive() << recr->ep << recr->profile_info_;
         }
     }
     send(reci->ep, resp);
@@ -396,7 +408,7 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs,
     // Lookup the initiator (caller) ID.
     // To protect us and our clients from DoS attacks,
     // the caller must be registered with the correct source endpoint.
-    registry_record *reci = find_caller(srcep, idi, nhi);
+    auto reci = find_caller(srcep, idi, nhi);
     if (reci == nullptr) {
         return;
     }
@@ -419,18 +431,18 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs,
 
     // Find the keyword with fewest matches to start with,
     // in order to make the set arithmetic reasonable efficient.
-    unordered_set<registry_record*> minset;
+    decltype(all_records_) minset;
     string minkw;
     size_t mincount = INT_MAX;
     for (string kw : kwords)
     {
-        if (!contains(kwhash, kw))
+        if (!contains(keyword_records_, kw))
         {
             minset.clear();
             mincount = 0;
             break;
         }
-        unordered_set<registry_record*> set = kwhash[kw];
+        auto set = keyword_records_[kw];
         if (set.size() < mincount) {
             minset = set;
             mincount = set.size();
@@ -448,16 +460,16 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs,
         if (kw == minkw) {
             continue; // It's the one we started with
         }
-        unordered_set<registry_record*> outset;
+        decltype(minset) outset;
         unordered_set_intersection(minset.begin(), minset.end(),
-            kwhash[kw].begin(), kwhash[kw].end(),
+            keyword_records_[kw].begin(), keyword_records_[kw].end(),
             inserter(outset, outset.begin()));
         minset = outset;
     }
     logger::debug() << "Minset size " << minset.size();
 
     // If client supplied no keywords, (try to) return all records.
-    const unordered_set<registry_record*>& results = kwords.empty() ? all_records_ : minset;
+    auto const& results = kwords.empty() ? all_records_ : minset;
 
     // Limit the set of results to at most MAX_RESULTS.
     size_t nresults = results.size();
@@ -504,12 +516,12 @@ registration_server::do_delete(byte_array_iwrap<flurry::iarchive>& rxs,
     // Lookup the initiator (caller) ID.
     // To protect us and our clients from DoS attacks,
     // the caller must be registered with the correct source endpoint.
-    registry_record *reci = find_caller(srcep, idi, hashedNonce);
+    auto reci = find_caller(srcep, idi, hashedNonce);
     if (reci == nullptr)
         return;
 
     bool wasDeleted = idhash.count(idi) > 0;
-    delete reci; // will wipe it from idhash table.
+    timeout_record(reci); // will wipe it from idhash table.
 
     // Response back notifying that the record was deleted.
     byte_array resp;
@@ -535,7 +547,7 @@ registration_server::find_caller(const ssu::endpoint &ep, const byte_array &idi,
         logger::debug() << "Received request from non-registered caller";
         return nullptr;
     }
-    registry_record *reci = idhash[idi];
+    auto reci = idhash[idi];
     if (ep != reci->ep) {
         logger::debug() << "Received request from wrong source endpoint " << ep
             << " expecting " << reci->ep;
@@ -548,75 +560,58 @@ registration_server::find_caller(const ssu::endpoint &ep, const byte_array &idi,
     return reci;
 }
 
-//=====================================================================================================================
+void
+registration_server::register_keywords(bool insert, internal::registry_record* rec)
+{
+    for (std::string kw : client_profile(rec->profile_info_).keywords())
+    {
+        auto& set = keyword_records_[kw];
+        if (insert) {
+            set.insert(rec);
+        } else {
+            set.erase(rec);
+            if (set.empty())
+                keyword_records_.erase(kw);
+        }
+    }
+}
+
+// Our timeout expired - just delete this record.
+void
+registration_server::timeout_record(internal::registry_record* rec)
+{
+    logger::debug() << "Timed out record for " << peer_id(rec->id) << " at " << rec->ep;
+    register_keywords(false, rec);
+    idhash.erase(rec->id);
+    all_records_.erase(rec);
+    delete rec;
+}
+
+//=================================================================================================
 // registry_record implementation
-//=====================================================================================================================
+//=================================================================================================
 namespace internal  {
 
-registry_record::registry_record(registration_server *srv,
+registry_record::registry_record(registration_server& srv,
         const byte_array &id, const byte_array &nhi,
         const ssu::endpoint &ep, const byte_array &info)
     : srv(srv)
     , id(id)
     , nhi(nhi)
     , ep(ep)
-    , info(info)
-    , timer_(srv->host_.get())
+    , profile_info_(info)
+    , timer_(srv.host_.get())
 {
-    // Register us in the registration_server's ID-lookup table,
-    // replacing any existing entry with this ID.
-    registry_record *old = srv->idhash[id];
-    if (old != nullptr) {
-        logger::debug() << "Replacing existing record for " << id;
-        delete old;
-    }
-    srv->idhash[id] = this;
-    srv->all_records_.insert(this);
-
     logger::debug() << "Registering record for " << peer_id(id) << " at " << ep;
 
-    // Register all our keywords in the registration_server's keyword table.
-    regKeywords(true);
-
     // Set the record's timeout
-    timer_.on_timeout.connect([this](bool){ timerEvent(); });
+    timer_.on_timeout.connect([this, &srv](bool){ srv.timeout_record(this); });
     timer_.start(timeout_period);
 }
 
 registry_record::~registry_record()
 {
     logger::debug() << "~registry_record: deleting record for " << peer_id(id);
-
-    assert(srv->idhash[id] == this);
-    srv->idhash.erase(id);
-    srv->all_records_.erase(this);
-
-    regKeywords(false);
-}
-
-void
-registry_record::regKeywords(bool insert)
-{
-    for (std::string kw : client_profile(info).keywords())
-    {
-        unordered_set<registry_record*> &set = srv->kwhash[kw];
-        if (insert) {
-            set.insert(this);
-        } else {
-            set.erase(this);
-            if (set.empty())
-                srv->kwhash.erase(kw);
-        }
-    }
-}
-
-void
-registry_record::timerEvent()
-{
-    logger::debug() << "Timed out record for " << peer_id(id) << " at " << ep;
-
-    // Our timeout expired - just silently delete this record.
-    delete this;
 }
 
 } // internal namespace

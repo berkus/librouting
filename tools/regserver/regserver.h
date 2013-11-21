@@ -28,22 +28,16 @@ class registry_record
 {
     friend class uia::routing::registration_server;
 
-    registration_server * const srv;
-    const byte_array id;
-    const byte_array nhi;
-    const ssu::endpoint ep;
-    const byte_array info;
+    registration_server& srv;
+    byte_array const id;
+    byte_array const nhi;
+    ssu::endpoint const ep;
+    byte_array const profile_info_;
     ssu::async::timer timer_;
 
-    registry_record(registration_server *srv, const byte_array &id, const byte_array &nhi,
+    registry_record(registration_server& srv, const byte_array &id, const byte_array &nhi,
         const ssu::endpoint &ep, const byte_array &info);
     ~registry_record();
-
-    // Break the description into keywords,
-    // and either insert or remove the keyword entries for this record.
-    void regKeywords(bool insert);
-
-    void timerEvent();
 };
 
 } // internal namespace
@@ -68,16 +62,22 @@ class registration_server
     std::unordered_map<byte_array, byte_array> chalhash;
 
     // Hash table to look up records by ID
-    std::unordered_map<byte_array,internal::registry_record*> idhash;
+    std::unordered_map<byte_array, internal::registry_record*> idhash;
 
     // Hash table to look up records by case-insensitive keyword
-    std::unordered_map<std::string, std::unordered_set<internal::registry_record*> > kwhash;
+    std::unordered_map<std::string,
+        std::unordered_set<internal::registry_record*>> keyword_records_;
 
     // Set of all existing records, for empty searches
     std::unordered_set<internal::registry_record*> all_records_;
 
     void prepare_async_receive(boost::asio::ip::udp::socket& sock);
 
+    // Break the description into keywords,
+    // and either insert or remove the keyword entries for this record.
+    void register_keywords(bool insert, internal::registry_record* rec);
+
+    void timeout_record(internal::registry_record* rec);
 
 public:
     registration_server(std::shared_ptr<ssu::host> host);
@@ -94,11 +94,11 @@ private:
 
     void reply_insert1(const ssu::endpoint &ep, const byte_array &idi, const byte_array &nhi);
     void reply_lookup(internal::registry_record *reci, uint32_t replycode,
-            const byte_array &idr, internal::registry_record *recr);
+        const byte_array &idr, internal::registry_record *recr);
     byte_array calc_cookie(const ssu::endpoint &ep, const byte_array &idi,
-                const byte_array &nhi);
-    internal::registry_record *find_caller(const ssu::endpoint &ep, const byte_array &idi,
-                const byte_array &nhi);
+        const byte_array &nhi);
+    internal::registry_record* find_caller(const ssu::endpoint &ep,
+        const byte_array &idi, const byte_array &nhi);
 
 private:
     void udp_ready_read(const boost::system::error_code& error, size_t bytes_transferred);
