@@ -300,8 +300,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
         resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
         byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << (REG_RESPONSE | REG_INSERT2) << nhi
-            << TIMEOUT_SEC << srcep;
+        write.archive() << (REG_RESPONSE | REG_INSERT2) << nhi << TIMEOUT_SEC << srcep;
     }
     send(srcep, resp);
 
@@ -320,8 +319,9 @@ registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& rxs,
         logger::debug() << "Received invalid Lookup message";
         return;
     }
-    if (notify)
+    if (notify) {
         logger::debug() << "Lookup with notify";
+    }
 
     // Lookup the initiator (caller).
     // To protect us and our clients from DoS attacks,
@@ -537,7 +537,8 @@ registration_server::find_caller(const ssu::endpoint &ep, const byte_array &idi,
     }
     registry_record *reci = idhash[idi];
     if (ep != reci->ep) {
-        logger::debug() << "Received request from wrong source endpoint " << ep << " expecting " << reci->ep;
+        logger::debug() << "Received request from wrong source endpoint " << ep
+            << " expecting " << reci->ep;
         return nullptr;
     }
     if (nhi != reci->nhi) {

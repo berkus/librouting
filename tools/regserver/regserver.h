@@ -61,11 +61,11 @@ class registration_server
     ssu::endpoint received_from;
     std::string error_string_;
 
-    // XX should timeout periodically
+    // XXX should timeout periodically
     byte_array secret;
 
     // Hash of insert challenge cookies and corresponding responses
-    std::unordered_map<byte_array,byte_array> chalhash;
+    std::unordered_map<byte_array, byte_array> chalhash;
 
     // Hash table to look up records by ID
     std::unordered_map<byte_array,internal::registry_record*> idhash;
