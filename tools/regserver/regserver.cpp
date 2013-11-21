@@ -80,7 +80,7 @@ registration_server::udp_ready_read(const boost::system::error_code& error,
             bytes_transferred);
         udp_dispatch(b, received_from);
         received_buffer.consume(bytes_transferred);
-        if (received_from.is_v6()) {
+        if (received_from.address().is_v6()) {
             prepare_async_receive(sock6);
         } else {
             prepare_async_receive(sock);
