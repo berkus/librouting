@@ -22,11 +22,8 @@ class client_profile;
  */
 class client
 {
-    // class client_impl;
-    // std::unique_ptr<client_impl> pimpl_;
-
 public:
-    virtual ~client() {}
+    virtual ~client() { on_destroyed(this); }
 
     virtual /*shared_ptr<*/ssu::host* get_host() = 0;
 
@@ -54,6 +51,9 @@ public:
     // Search for IDs of clients with metadata matching a search string.
     // Will send an on_search_done() signal when the request completes.
     virtual void search(std::string const& text) = 0;
+
+    typedef boost::signals2::signal<void (client*)> destroyed_signal;
+    destroyed_signal on_destroyed;
 
     typedef boost::signals2::signal<void (void)> ready_signal;
     ready_signal on_ready; /* Client is ready to resolve EIDs */
