@@ -15,12 +15,20 @@ namespace uia {
 namespace routing {
 
 class client_profile;
+class client;
+
+/* Helper base class to keep on_destroyed constructed in derived class destructor. */
+struct client_destroyer
+{
+    typedef boost::signals2::signal<void (client*)> destroyed_signal;
+    destroyed_signal on_destroyed;
+};
 
 /**
  * Routing client represents the client side of the routing libraries.
  * It provides notifications about found peer endpoints and allows to initiate peer searches.
  */
-class client
+class client : public client_destroyer
 {
 public:
     virtual ~client() { on_destroyed(this); }
@@ -51,9 +59,6 @@ public:
     // Search for IDs of clients with metadata matching a search string.
     // Will send an on_search_done() signal when the request completes.
     virtual void search(std::string const& text) = 0;
-
-    typedef boost::signals2::signal<void (client*)> destroyed_signal;
-    destroyed_signal on_destroyed;
 
     typedef boost::signals2::signal<void (void)> ready_signal;
     ready_signal on_ready; /* Client is ready to resolve EIDs */
