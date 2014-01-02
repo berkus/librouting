@@ -67,6 +67,9 @@ public:
     }
 
     inline byte_array attribute(attribute_tag tag) const {
+        if (!contains(attributes_, to_underlying(tag))) {
+            return byte_array();
+        }
         return attributes_.at(to_underlying(tag));
     }
     inline void set_attribute(attribute_tag tag, byte_array const& value) {
