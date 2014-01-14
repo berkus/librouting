@@ -1,7 +1,7 @@
 #include "private/regserver_client.h"
 #include "ssu/link.h"
 #include "ssu/host.h"
-#include "sha256_hash.h"
+#include "krypto/sha256_hash.h"
 
 namespace bp = boost::posix_time;
 using namespace std;

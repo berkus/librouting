@@ -9,7 +9,7 @@
 #include <regex>
 #include "regserver.h"
 #include "logging.h"
-#include "sha256_hash.h"
+#include "krypto/sha256_hash.h"
 #include "ssu/identity.h"
 #include "ssu/peer_id.h"
 #include "ssu/host.h"
