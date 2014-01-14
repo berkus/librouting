@@ -14,7 +14,7 @@
 #include "ssu/peer_id.h"
 #include "ssu/host.h"
 #include "ssu/link.h"
-#include "private/regserver_client.h" // For some shared constants
+#include "routing/private/regserver_client.h" // For some shared constants
 
 namespace bp = boost::posix_time;
 using namespace uia::routing::internal;

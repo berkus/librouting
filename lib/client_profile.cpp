@@ -7,7 +7,7 @@
 // (See file LICENSE_1_0.txt or a copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <regex>
-#include "client_profile.h"
+#include "routing/client_profile.h"
 
 namespace uia {
 namespace routing {

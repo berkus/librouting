@@ -11,8 +11,8 @@
 #include <set>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/signals2/signal.hpp>
-#include "client_profile.h"
-#include "routing_client.h"
+#include "routing/client_profile.h"
+#include "routing/routing_client.h"
 #include "ssu/timer.h"
 #include "ssu/peer_id.h"
 

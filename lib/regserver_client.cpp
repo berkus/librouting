@@ -1,4 +1,4 @@
-#include "private/regserver_client.h"
+#include "routing/private/regserver_client.h"
 #include "ssu/link.h"
 #include "ssu/host.h"
 #include "krypto/sha256_hash.h"
