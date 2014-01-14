@@ -9,7 +9,7 @@
 #pragma once
 
 #include <boost/signals2/signal.hpp>
-#include "peer_id.h"
+#include "ssu/peer_id.h"
 
 namespace uia {
 namespace routing {
@@ -85,7 +85,7 @@ public:
     lookup_signal on_lookup_notify;
 
     typedef boost::signals2::signal<void (std::string const& /*search term*/,
-        std::vector<ssu::peer_id> const& /* peers matching this term */, 
+        std::vector<ssu::peer_id> const& /* peers matching this term */,
         bool /*last result received*/)>
         search_signal;
 

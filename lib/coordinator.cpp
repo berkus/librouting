@@ -11,9 +11,9 @@
 #include "algorithm.h"
 #include "coordinator.h"
 #include "make_unique.h"
-#include "link_receiver.h"
+#include "ssu/link_receiver.h"
 #include "logging.h"
-#include "peer_id.h"
+#include "ssu/peer_id.h"
 #include "private/regserver_client.h" // @fixme This is tied to regserver now.
 
 using namespace std;
@@ -34,7 +34,7 @@ class routing_receiver : public ssu::link_receiver
 {
     // Global hash table of active routing_client instances,
     // for dispatching incoming messages based on hashed nonce.
-    // 
+    //
     // Only regserver_clients can be hashed on the nonce here, since other routing types
     // might not even use it. @todo This will probably need a different implementation.
     unordered_map<byte_array, client*> hashed_nonce_clients_;

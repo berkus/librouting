@@ -10,10 +10,10 @@
 #include "regserver.h"
 #include "logging.h"
 #include "sha256_hash.h"
-#include "identity.h"
-#include "peer_id.h"
-#include "host.h"
-#include "link.h"
+#include "ssu/identity.h"
+#include "ssu/peer_id.h"
+#include "ssu/host.h"
+#include "ssu/link.h"
 #include "private/regserver_client.h" // For some shared constants
 
 namespace bp = boost::posix_time;

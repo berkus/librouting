@@ -10,8 +10,8 @@
 
 #include "byte_array.h"
 #include "byte_array_wrap.h"
-#include "link.h" // @todo move the link classes to comm::link
-#include "timer.h" // @todo move ssu::async to async
+#include "ssu/link.h" // @todo move the link classes to comm::link
+#include "ssu/timer.h" // @todo move ssu::async to async
 
 namespace uia {
 namespace routing {

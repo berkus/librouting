@@ -12,7 +12,7 @@
 #include <boost/range/algorithm/copy.hpp>
 #include "byte_array.h"
 #include "byte_array_wrap.h"
-#include "link.h"
+#include "ssu/link.h"
 #include "underlying.h"
 
 namespace uia {
@@ -155,7 +155,7 @@ public:
         attributes_.clear();
         byte_array_iwrap<flurry::iarchive> read(data);
         read.archive() >> attributes_;
-    }    
+    }
 private:
     std::unordered_map<std::underlying_type<attribute_tag>::type, byte_array> attributes_;
 };

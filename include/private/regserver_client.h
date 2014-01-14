@@ -13,8 +13,8 @@
 #include <boost/signals2/signal.hpp>
 #include "client_profile.h"
 #include "routing_client.h"
-#include "timer.h"
-#include "peer_id.h"
+#include "ssu/timer.h"
+#include "ssu/peer_id.h"
 
 namespace uia {
 namespace routing {
@@ -64,7 +64,7 @@ private:
     // DNS resolution info
     std::string srvname;    // DNS hostname or IP address of server
     uint16_t srvport;    // Port number of registration server
-    boost::asio::ip::udp::resolver resolver_; 
+    boost::asio::ip::udp::resolver resolver_;
     // int lookupid;       // QHostInfo lookupId for DNS resolution
     std::vector<ssu::endpoint> addrs; friend class uia::routing::routing_receiver; // Server addresses from resolution
     client_profile inf;        // Registration metadata
