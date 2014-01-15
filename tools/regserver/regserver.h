@@ -8,8 +8,8 @@
 //
 #pragma once
 
-#include "byte_array.h"
-#include "byte_array_wrap.h"
+#include "arsenal/byte_array.h"
+#include "arsenal/byte_array_wrap.h"
 #include "ssu/link.h" // @todo move the link classes to comm::link
 #include "ssu/timer.h" // @todo move ssu::async to async
 

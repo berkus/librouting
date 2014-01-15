@@ -10,10 +10,10 @@
 
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
-#include "byte_array.h"
-#include "byte_array_wrap.h"
+#include "arsenal/byte_array.h"
+#include "arsenal/byte_array_wrap.h"
 #include "ssu/link.h"
-#include "underlying.h"
+#include "arsenal/underlying.h"
 
 namespace uia {
 namespace routing {

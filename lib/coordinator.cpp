@@ -8,11 +8,11 @@
 //
 #include <unordered_map>
 #include <unordered_set>
-#include "algorithm.h"
+#include "arsenal/algorithm.h"
 #include "routing/coordinator.h"
-#include "make_unique.h"
+#include "arsenal/make_unique.h"
 #include "ssu/link_receiver.h"
-#include "logging.h"
+#include "arsenal/logging.h"
 #include "ssu/peer_id.h"
 #include "routing/private/regserver_client.h" // @fixme This is tied to regserver now.
 

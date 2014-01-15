@@ -8,7 +8,7 @@
 //
 #include <regex>
 #include "regserver.h"
-#include "logging.h"
+#include "arsenal/logging.h"
 #include "krypto/sha256_hash.h"
 #include "ssu/identity.h"
 #include "ssu/peer_id.h"

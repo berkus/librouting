@@ -11,7 +11,7 @@
 #include <memory>
 #include <vector>
 #include <boost/signals2/signal.hpp>
-#include "byte_array.h"
+#include "arsenal/byte_array.h"
 
 namespace ssu {
 class host;
