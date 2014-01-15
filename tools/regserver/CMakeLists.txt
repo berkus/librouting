@@ -1,5 +1,5 @@
 add_executable(regserver regserver.cpp)
-target_link_libraries(regserver routing ssu support krypto
+target_link_libraries(regserver routing ssu arsenal krypto
     ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
 install(TARGETS regserver
     RUNTIME DESTINATION tools)
