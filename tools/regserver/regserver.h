@@ -10,37 +10,10 @@
 
 #include "arsenal/byte_array.h"
 #include "arsenal/byte_array_wrap.h"
-#include "ssu/link.h" // @todo move the link classes to comm::link
-#include "ssu/timer.h" // @todo move ssu::async to async
+#include "routing/private/registry_record.h"
 
 namespace uia {
 namespace routing {
-
-class registration_server;
-
-namespace internal {
-
-// We maintain a registry_record for each registered client.
-// For memory space efficiency, we keep info blocks in binary form
-// and only break them out into a client_profile object when we need to.
-// Private helper class for registration_server.
-class registry_record
-{
-    friend class uia::routing::registration_server;
-
-    registration_server& srv;
-    byte_array const id;
-    byte_array const nhi;
-    ssu::endpoint const ep;
-    byte_array const profile_info_;
-    ssu::async::timer timer_;
-
-    registry_record(registration_server& srv, const byte_array &id, const byte_array &nhi,
-        const ssu::endpoint &ep, const byte_array &info);
-    ~registry_record();
-};
-
-} // internal namespace
 
 class registration_server
 {

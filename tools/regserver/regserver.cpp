@@ -16,13 +16,9 @@
 #include "ssu/link.h"
 #include "routing/private/regserver_client.h" // For some shared constants
 
-namespace bp = boost::posix_time;
 using namespace uia::routing::internal;
 using namespace std;
 using namespace ssu;
-
-constexpr uint32_t TIMEOUT_SEC = (1*60*60);   // Records last 1 hour
-const ssu::async::timer::duration_type timeout_period = bp::seconds(TIMEOUT_SEC);
 
 constexpr int MAX_RESULTS = 100;     // Maximum number of search results
 
@@ -312,7 +308,8 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
         resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
         byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << (REG_RESPONSE | REG_INSERT2) << nhi << TIMEOUT_SEC << srcep;
+        write.archive() << (REG_RESPONSE | REG_INSERT2) << nhi
+            << registry_record::timeout_seconds << srcep;
     }
     send(srcep, resp);
 
@@ -587,34 +584,6 @@ registration_server::timeout_record(internal::registry_record* rec)
     delete rec;
 }
 
-//=================================================================================================
-// registry_record implementation
-//=================================================================================================
-namespace internal  {
-
-registry_record::registry_record(registration_server& srv,
-        const byte_array &id, const byte_array &nhi,
-        const ssu::endpoint &ep, const byte_array &info)
-    : srv(srv)
-    , id(id)
-    , nhi(nhi)
-    , ep(ep)
-    , profile_info_(info)
-    , timer_(srv.host_.get())
-{
-    logger::debug() << "Registering record for " << peer_id(id) << " at " << ep;
-
-    // Set the record's timeout
-    timer_.on_timeout.connect([this, &srv](bool){ srv.timeout_record(this); });
-    timer_.start(timeout_period);
-}
-
-registry_record::~registry_record()
-{
-    logger::debug() << "~registry_record: deleting record for " << peer_id(id);
-}
-
-} // internal namespace
 } // routing namespace
 } // uia namespace
 
