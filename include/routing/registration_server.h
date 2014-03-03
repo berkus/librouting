@@ -26,6 +26,7 @@ class registration_server
 
     std::shared_ptr<ssu::host> host_;
     ssu::server server_;
+    std::vector<ssu::stream> sessions_;
 
     // Hash of insert challenge cookies and corresponding responses
     std::unordered_map<byte_array, byte_array> chalhash;

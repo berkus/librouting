@@ -11,9 +11,29 @@
 namespace uia {
 namespace routing {
 
-void
-registration_server::on_incoming_record()
+registration_server::registration_server()
 {
+    server_ = make_shared<ssu::server>(host);
+    server_->on_new_connection.connect([&] { on_new_connection(server); });
+    bool listening = server_->listen("routing", "Overlay routing layer",
+        "regserver-v1", "Registration server protocol");
+    assert(listening);
+}
+
+void
+registration_server::on_new_connection(shared_ptr<server> server)
+{
+    while (auto stream = server->accept())
+    {
+        stream.on_ready_read_record.connect([this] { on_incoming_record(stream); });
+        sessions_.push_back(stream);
+    }
+}
+
+void
+registration_server::on_incoming_record(shared_ptr<stream> stream)
+{
+    byte_array msg = stream->read_record();
     logger::debug() << "Received " << dec << msg.size() << " byte message from " << srcep;
 
     uint32_t magic, code;
