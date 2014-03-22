@@ -8,12 +8,12 @@
 //
 #include <unordered_map>
 #include <unordered_set>
-#include "arsenal/algorithm.h"
-#include "routing/coordinator.h"
-#include "arsenal/make_unique.h"
-#include "ssu/link_receiver.h"
 #include "arsenal/logging.h"
+#include "arsenal/algorithm.h"
+#include "arsenal/make_unique.h"
 #include "ssu/peer_id.h"
+#include "ssu/socket_receiver.h"
+#include "routing/coordinator.h"
 #include "routing/private/regserver_client.h" // @fixme This is tied to regserver now.
 
 using namespace std;
@@ -30,7 +30,7 @@ constexpr ssu::magic_t routing_magic = REG_MAGIC; // 'xROU'
 
 // Private helper class for routing_client_coordinator -
 // attaches to our link and dispatches control messages to different clients.
-class routing_receiver : public ssu::link_receiver
+class routing_receiver : public ssu::socket_receiver
 {
     // Global hash table of active routing_client instances,
     // for dispatching incoming messages based on hashed nonce.
@@ -40,7 +40,7 @@ class routing_receiver : public ssu::link_receiver
     unordered_map<byte_array, client*> hashed_nonce_clients_;
 
 private:
-    void receive(byte_array const& msg, ssu::link_endpoint const& src) override;
+    void receive(byte_array const& msg, comm::socket_endpoint const& src) override;
 
 public:
     routing_receiver(shared_ptr<ssu::host> host);
@@ -56,12 +56,12 @@ public:
 };
 
 routing_receiver::routing_receiver(shared_ptr<ssu::host> host)
-    : ssu::link_receiver(host, routing_magic)
+    : ssu::socket_receiver(host, routing_magic)
 {
     logger::debug() << "Routing receiver created";
 }
 
-void routing_receiver::receive(byte_array const& msg, ssu::link_endpoint const& src)
+void routing_receiver::receive(byte_array const& msg, comm::socket_endpoint const& src)
 {
     logger::debug() << "Routing receiver: received routing packet";
     // Decode the first part of the message
@@ -99,6 +99,7 @@ void routing_receiver::receive(byte_array const& msg, ssu::link_endpoint const& 
         return cli->got_delete_reply(read);
     case REG_NOTIFY | REG_LOOKUP:
         return cli->got_lookup_reply(read, true);
+    // @todo Add regserver REG_REQUEST handling for implementing regserver directly inside client.
     default:
         logger::debug() << this << "bad message code" << code;
     }
