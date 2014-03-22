@@ -13,8 +13,9 @@
 #include "ssu/identity.h"
 #include "ssu/peer_id.h"
 #include "ssu/host.h"
-#include "ssu/link.h"
+#include "comm/socket.h"
 #include "routing/private/regserver_client.h" // For some shared constants
+#include "ssu/udp_socket.h"
 
 using namespace uia::routing::internal;
 using namespace std;
@@ -38,14 +39,14 @@ registration_server::registration_server(std::shared_ptr<ssu::host> host)
     boost::asio::ip::udp::endpoint ep6(boost::asio::ip::address_v6::any(), REGSERVER_DEFAULT_PORT);
 
     logger::debug() << "Regserver bind on local endpoint " << ep;
-    if (!ssu::bind_socket(sock, ep, error_string_))
+    if (!bind_socket(sock, ep, error_string_))
         return;
     // once bound, can start receiving datagrams.
     prepare_async_receive(sock);
     logger::debug() << "Bound socket on " << ep;
 
     logger::debug() << "Regserver bind on local endpoint " << ep6;
-    if (!ssu::bind_socket(sock6, ep6, error_string_))
+    if (!bind_socket(sock6, ep6, error_string_))
         return;
     // once bound, can start receiving datagrams.
     error_string_ = "";
