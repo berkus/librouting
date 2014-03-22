@@ -52,18 +52,18 @@ public:
 
 private:
     void on_incoming_record();
-    void do_insert1(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void do_insert2(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void do_lookup(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void do_search(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void do_delete(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint& ep);
+    void do_insert1(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<ssu::stream> stream);
+    void do_insert2(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<ssu::stream> stream);
+    void do_lookup(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<ssu::stream> stream);
+    void do_search(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<ssu::stream> stream);
+    void do_delete(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<ssu::stream> stream);
 
-    void reply_insert1(const ssu::endpoint &ep, const byte_array &idi, const byte_array &nhi);
+    void reply_insert1(std::shared_ptr<ssu::stream> stream, const byte_array &idi, const byte_array &nhi);
     void reply_lookup(internal::registry_record *reci, uint32_t replycode,
         const byte_array &idr, internal::registry_record *recr);
-    byte_array calc_cookie(const ssu::endpoint &ep, const byte_array &idi,
+    byte_array calc_cookie(const ssu::peer_id &eid, const byte_array &idi,
         const byte_array &nhi);
-    internal::registry_record* find_caller(const ssu::endpoint &ep,
+    internal::registry_record* find_caller(const comm::endpoint &ep,
         const byte_array &idi, const byte_array &nhi);
 };
 
