@@ -25,7 +25,7 @@ class registration_server
     boost::asio::ip::udp::socket sock;
     boost::asio::ip::udp::socket sock6;
     boost::asio::streambuf received_buffer;
-    ssu::endpoint received_from;
+    comm::endpoint received_from;
     std::string error_string_;
 
     // XXX should timeout periodically
@@ -58,24 +58,24 @@ public:
     inline void run() { io_service_.run(); }
 
 private:
-    void udp_dispatch(byte_array &msg, const ssu::endpoint &ep);
-    void do_insert1(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void do_insert2(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void do_lookup(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void do_search(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint &ep);
-    void do_delete(byte_array_iwrap<flurry::iarchive>& is, const ssu::endpoint& ep);
+    void udp_dispatch(byte_array &msg, const comm::endpoint &ep);
+    void do_insert1(byte_array_iwrap<flurry::iarchive>& is, const comm::endpoint &ep);
+    void do_insert2(byte_array_iwrap<flurry::iarchive>& is, const comm::endpoint &ep);
+    void do_lookup(byte_array_iwrap<flurry::iarchive>& is, const comm::endpoint &ep);
+    void do_search(byte_array_iwrap<flurry::iarchive>& is, const comm::endpoint &ep);
+    void do_delete(byte_array_iwrap<flurry::iarchive>& is, const comm::endpoint& ep);
 
-    void reply_insert1(const ssu::endpoint &ep, const byte_array &idi, const byte_array &nhi);
+    void reply_insert1(const comm::endpoint &ep, const byte_array &idi, const byte_array &nhi);
     void reply_lookup(internal::registry_record *reci, uint32_t replycode,
         const byte_array &idr, internal::registry_record *recr);
-    byte_array calc_cookie(const ssu::endpoint &ep, const byte_array &idi,
+    byte_array calc_cookie(const comm::endpoint &ep, const byte_array &idi,
         const byte_array &nhi);
-    internal::registry_record* find_caller(const ssu::endpoint &ep,
+    internal::registry_record* find_caller(const comm::endpoint &ep,
         const byte_array &idi, const byte_array &nhi);
 
 private:
     void udp_ready_read(const boost::system::error_code& error, size_t bytes_transferred);
-    bool send(const ssu::endpoint& ep, byte_array const& msg);
+    bool send(const comm::endpoint& ep, byte_array const& msg);
 };
 
 } // routing namespace

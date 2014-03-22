@@ -65,7 +65,7 @@ public:
     ready_signal on_disconnected; /* Client is not ready anymore */
 
     typedef boost::signals2::signal<void (ssu::peer_id const& /* target peer */,
-        ssu::endpoint const& /* endpoint found for this peer */,
+        uia::comm::endpoint const& /* endpoint found for this peer */,
         client_profile const& /* peer's profile data */)>
         lookup_signal;
     typedef boost::signals2::signal<void (ssu::peer_id const& /* target peer */)>

@@ -1,6 +1,6 @@
 #include "routing/private/regserver_client.h"
-#include "ssu/link.h"
 #include "ssu/host.h"
+#include "comm/socket.h"
 #include "krypto/sha256_hash.h"
 
 namespace bp = boost::posix_time;
@@ -60,9 +60,9 @@ void regserver_client::disconnect()
     // Fail all outstanding lookup and search requests
     // XX provide a better error indication?
     for (const ssu::peer_id &id : lookups)
-        on_lookup_done(id, ssu::endpoint(), client_profile());
+        on_lookup_done(id, uia::comm::endpoint(), client_profile());
     for (const ssu::peer_id &id : punches)
-        on_lookup_done(id, ssu::endpoint(), client_profile());
+        on_lookup_done(id, uia::comm::endpoint(), client_profile());
     for (const std::string &text : searches)
         on_search_done(text, std::vector<ssu::peer_id>(), true);
 
@@ -125,7 +125,7 @@ void regserver_client::reregister()
     // Just use the IP address we were given in string form
     logger::debug() << "Using plain rendezvous server address.";
     addrs.clear();
-    addrs.emplace_back(ssu::endpoint(addr, srvport));
+    addrs.emplace_back(uia::comm::endpoint(addr, srvport));
 
     go_insert1();
 }
@@ -138,7 +138,7 @@ regserver_client::got_resolve_results(const boost::system::error_code& ec,
         for (boost::asio::ip::udp::resolver::iterator end; ep_it != end; ++ep_it)
         {
             // possible lookup key - ep_it->host_name()
-            addrs.emplace_back(ssu::endpoint(ep_it->endpoint().address(), srvport));
+            addrs.emplace_back(comm::endpoint(ep_it->endpoint().address(), srvport));
         }
     } else {
         return fail(ec.message());
@@ -256,7 +256,7 @@ void regserver_client::got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is)
 {
     // Decode the rest of the reply
     int32_t life_secs;
-    ssu::endpoint public_ep;
+    comm::endpoint public_ep;
     is.archive() >> life_secs >> public_ep;
     // if (rs.status() != rs.Ok) {
     //     logger::debug() << this << "got invalid Insert2 reply";
@@ -314,7 +314,7 @@ void regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, 
     // Decode the rest of the reply
     byte_array targetid, targetinfo;
     bool success;
-    ssu::endpoint targetloc;
+    comm::endpoint targetloc;
     is.archive() >> targetid >> success;
     if (success) {
         is.archive() >> targetloc >> targetinfo;

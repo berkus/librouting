@@ -9,7 +9,8 @@
 #pragma once
 
 #include "arsenal/byte_array.h"
-#include "ssu/link.h" // @todo move the link classes to comm::link
+#include "ssu/host.h"//@todo Remove this when comm/socket is decoupled from ssu
+#include "comm/socket.h"
 #include "ssu/timer.h" // @todo move ssu::async to async
 
 namespace uia {
@@ -31,12 +32,13 @@ class registry_record
     registration_server& srv;
     byte_array const id;
     byte_array const nhi;
-    ssu::endpoint const ep;
+    uia::comm::endpoint const ep;
     byte_array const profile_info_;
     ssu::async::timer timer_;
 
-    registry_record(registration_server& srv, const byte_array &id, const byte_array &nhi,
-        const ssu::endpoint &ep, const byte_array &info);
+    registry_record(registration_server& srv, byte_array const& id, byte_array const& nhi,
+        uia::comm::endpoint const& ep, byte_array const& info); // ep based for old regserver
+    // @todo Add stream-based ctor for new regserver
     ~registry_record();
 };
 

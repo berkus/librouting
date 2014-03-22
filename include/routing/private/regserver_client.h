@@ -66,7 +66,7 @@ private:
     uint16_t srvport;    // Port number of registration server
     boost::asio::ip::udp::resolver resolver_;
     // int lookupid;       // QHostInfo lookupId for DNS resolution
-    std::vector<ssu::endpoint> addrs; friend class uia::routing::routing_receiver; // Server addresses from resolution
+    std::vector<uia::comm::endpoint> addrs; friend class uia::routing::routing_receiver; // Server addresses from resolution
     client_profile inf;        // Registration metadata
 
     // Registration process state

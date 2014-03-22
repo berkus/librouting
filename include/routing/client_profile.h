@@ -8,11 +8,14 @@
 //
 #pragma once
 
+#include <vector>
+#include <string>
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include "arsenal/byte_array.h"
 #include "arsenal/byte_array_wrap.h"
-#include "ssu/link.h"
+#include "ssu/host.h"//@todo Remove this when comm/socket is decoupled from ssu
+#include "comm/socket.h"
 #include "arsenal/underlying.h"
 
 namespace uia {
@@ -137,8 +140,8 @@ public:
 
     /** @name Advertised private endpoints. */
     /**@{*/
-    std::vector<ssu::endpoint> endpoints() const;
-    void set_endpoints(std::vector<ssu::endpoint> const& endpoints);
+    std::vector<uia::comm::endpoint> endpoints() const;
+    void set_endpoints(std::vector<uia::comm::endpoint> const& endpoints);
     /**@}*/
 
     inline void enflurry(flurry::oarchive& oa) const {

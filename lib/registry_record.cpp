@@ -23,7 +23,7 @@ constexpr uint32_t registry_record::timeout_seconds;
 
 registry_record::registry_record(registration_server& srv,
         const byte_array &id, const byte_array &nhi,
-        const ssu::endpoint &ep, const byte_array &info)
+        const uia::comm::endpoint &ep, const byte_array &info)
     : srv(srv)
     , id(id)
     , nhi(nhi)

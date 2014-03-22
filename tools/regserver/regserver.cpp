@@ -90,7 +90,7 @@ registration_server::udp_ready_read(const boost::system::error_code& error,
 }
 
 bool
-registration_server::send(const ssu::endpoint& ep, byte_array const& msg)
+registration_server::send(const comm::endpoint& ep, byte_array const& msg)
 {
     boost::system::error_code ec;
     size_t sent = sock.send_to(boost::asio::buffer(msg.data(), msg.size()), ep, 0, ec);
@@ -101,7 +101,7 @@ registration_server::send(const ssu::endpoint& ep, byte_array const& msg)
 }
 
 void
-registration_server::udp_dispatch(byte_array &msg, ssu::endpoint const& srcep)
+registration_server::udp_dispatch(byte_array &msg, comm::endpoint const& srcep)
 {
     logger::debug() << "Received " << dec << msg.size() << " byte message from " << srcep;
 
@@ -136,7 +136,7 @@ registration_server::udp_dispatch(byte_array &msg, ssu::endpoint const& srcep)
 
 void
 registration_server::do_insert1(byte_array_iwrap<flurry::iarchive>& rxs,
-                                ssu::endpoint const& srcep)
+                                comm::endpoint const& srcep)
 {
     logger::debug() << "Insert1";
 
@@ -158,7 +158,7 @@ registration_server::do_insert1(byte_array_iwrap<flurry::iarchive>& rxs,
  * before spending CPU time checking the client's signature.
  */
 void
-registration_server::reply_insert1(const ssu::endpoint &srcep, const byte_array &idi,
+registration_server::reply_insert1(const comm::endpoint &srcep, const byte_array &idi,
                                    const byte_array &nhi)
 {
     // Compute the correct challenge cookie for the message.
@@ -180,7 +180,7 @@ registration_server::reply_insert1(const ssu::endpoint &srcep, const byte_array 
 }
 
 byte_array
-registration_server::calc_cookie(const ssu::endpoint &srcep, const byte_array &idi,
+registration_server::calc_cookie(const comm::endpoint &srcep, const byte_array &idi,
                                  const byte_array &nhi)
 {
     // Make sure we have a host secret to key the challenge with
@@ -205,7 +205,7 @@ registration_server::calc_cookie(const ssu::endpoint &srcep, const byte_array &i
 
 void
 registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
-                                const ssu::endpoint &srcep)
+                                const comm::endpoint &srcep)
 {
     logger::debug() << "Insert2";
 
@@ -318,7 +318,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
 
 void
 registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& rxs,
-                               const ssu::endpoint &srcep)
+                               const comm::endpoint &srcep)
 {
     // Decode the rest of the lookup request.
     byte_array idi, nhi, idr;
@@ -391,7 +391,7 @@ OutIt unordered_set_intersection(InIt1 b1, InIt1 e1, InIt2 b2, InIt2 e2, OutIt o
 
 void
 registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs,
-                               const ssu::endpoint &srcep)
+                               const comm::endpoint &srcep)
 {
     // Decode the rest of the search request.
     byte_array idi, nhi;
@@ -497,8 +497,9 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs,
 }
 
 void
-registration_server::do_delete(byte_array_iwrap<flurry::iarchive>& rxs,
-    const ssu::endpoint& srcep)
+registration_server::do_delete(
+    byte_array_iwrap<flurry::iarchive>& rxs,
+    comm::endpoint const& srcep)
 {
     logger::debug() << "Received delete request";
 
@@ -535,8 +536,10 @@ registration_server::do_delete(byte_array_iwrap<flurry::iarchive>& rxs,
 }
 
 registry_record*
-registration_server::find_caller(const ssu::endpoint &ep, const byte_array &idi,
-    const byte_array &nhi)
+registration_server::find_caller(
+    comm::endpoint const& ep,
+    byte_array const& idi,
+    byte_array const& nhi)
 {
     // @TODO: list the existing records here before lookup?
 
