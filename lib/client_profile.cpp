@@ -7,16 +7,20 @@
 // (See file LICENSE_1_0.txt or a copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <regex>
+#include <vector>
+#include <string>
 #include "routing/client_profile.h"
+
+using namespace std;
 
 namespace uia {
 namespace routing {
 
-std::vector<std::string>
+vector<string>
 client_profile::keywords() const
 {
-    std::vector<std::string> result;
-    std::regex word_regex("(\\S+)");
+    vector<std::string> result;
+    regex word_regex("(\\S+)");
 
     for (auto tag : tags())
     {
@@ -24,12 +28,12 @@ client_profile::keywords() const
         {
             std::string s = string(attribute_tag(tag));
             // Break this string into keywords and add it to our list
-            auto words_begin = std::sregex_iterator(s.begin(), s.end(), word_regex);
-            auto words_end = std::sregex_iterator();
+            auto words_begin = sregex_iterator(s.begin(), s.end(), word_regex);
+            auto words_end = sregex_iterator();
 
             const int N = 2;
-            for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
-                std::smatch match = *i;
+            for (sregex_iterator i = words_begin; i != words_end; ++i) {
+                smatch match = *i;
                 std::string match_str = match.str();
                 if (match_str.size() >= N) {
                     result.emplace_back(match_str);
@@ -40,10 +44,10 @@ client_profile::keywords() const
     return result;
 }
 
-std::vector<ssu::endpoint>
+vector<uia::comm::endpoint>
 client_profile::endpoints() const
 {
-    std::vector<ssu::endpoint> result;
+    vector<uia::comm::endpoint> result;
     {
         byte_array_iwrap<flurry::iarchive> read(attribute(attribute_tag::endpoints));
         read.archive() >> result;
@@ -52,7 +56,7 @@ client_profile::endpoints() const
 }
 
 void
-client_profile::set_endpoints(std::vector<ssu::endpoint> const& endpoints)
+client_profile::set_endpoints(vector<uia::comm::endpoint> const& endpoints)
 {
     byte_array buf;
     {
