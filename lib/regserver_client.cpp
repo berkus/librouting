@@ -428,12 +428,14 @@ void regserver_client::send(const byte_array &msg)
     // Send the message to all addresses we know for the server,
     // using all of the currently active network sockets.
     // XXX should only do this during initial discovery!!
-    auto socks = host_->active_links();
+    auto socks = host_->active_sockets();
     if (socks.empty()) {
         logger::warning() << "No active network sockets available";
     }
-    for (auto sock : socks) {
-        for (auto addr : addrs) {
+    for (auto sock : socks)
+    {
+        for (auto addr : addrs)
+        {
             addr.port(srvport); // ?? @fixme
             sock->send(addr, msg);
         }
