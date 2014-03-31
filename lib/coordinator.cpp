@@ -11,10 +11,10 @@
 #include "arsenal/logging.h"
 #include "arsenal/algorithm.h"
 #include "arsenal/make_unique.h"
-#include "ssu/peer_id.h"
-#include "ssu/socket_receiver.h"
+#include "comm/socket_receiver.h"
 #include "routing/coordinator.h"
 #include "routing/private/regserver_client.h" // @fixme This is tied to regserver now.
+#include "ssu/peer_id.h"
 
 using namespace std;
 using namespace uia::routing::internal;
@@ -22,7 +22,7 @@ using namespace uia::routing::internal;
 namespace uia {
 namespace routing {
 
-constexpr ssu::magic_t routing_magic = REG_MAGIC; // 'xROU'
+constexpr comm::magic_t routing_magic = REG_MAGIC; // 'xROU'
 
 //=====================================================================================================================
 // routing_receiver
@@ -30,7 +30,7 @@ constexpr ssu::magic_t routing_magic = REG_MAGIC; // 'xROU'
 
 // Private helper class for routing_client_coordinator -
 // attaches to our link and dispatches control messages to different clients.
-class routing_receiver : public ssu::socket_receiver
+class routing_receiver : public comm::socket_receiver
 {
     // Global hash table of active routing_client instances,
     // for dispatching incoming messages based on hashed nonce.
@@ -56,7 +56,7 @@ public:
 };
 
 routing_receiver::routing_receiver(shared_ptr<ssu::host> host)
-    : ssu::socket_receiver(host, routing_magic)
+    : comm::socket_receiver(host.get(), routing_magic)
 {
     logger::debug() << "Routing receiver created";
 }

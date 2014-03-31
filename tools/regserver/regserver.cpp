@@ -7,15 +7,15 @@
 // (See file LICENSE_1_0.txt or a copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 #include <regex>
-#include "regserver.h"
 #include "arsenal/logging.h"
 #include "krypto/sha256_hash.h"
+#include "comm/socket.h"
+#include "comm/udp_socket.h"
+#include "routing/private/regserver_client.h" // For some shared constants
 #include "ssu/identity.h"
 #include "ssu/peer_id.h"
 #include "ssu/host.h"
-#include "comm/socket.h"
-#include "routing/private/regserver_client.h" // For some shared constants
-#include "ssu/udp_socket.h"
+#include "regserver.h"
 
 using namespace uia::routing::internal;
 using namespace std;
