@@ -14,7 +14,6 @@
 #include <boost/range/algorithm/copy.hpp>
 #include "arsenal/byte_array.h"
 #include "arsenal/byte_array_wrap.h"
-#include "ssu/host.h"//@todo Remove this when comm/socket is decoupled from ssu
 #include "comm/socket.h"
 #include "arsenal/underlying.h"
 
