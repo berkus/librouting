@@ -62,23 +62,32 @@ public:
     /**@{*/
     inline bool is_empty() const { return attributes_.empty(); }
 
-    inline std::vector<std::underlying_type<attribute_tag>::type>
-    tags() const {
+    inline
+    std::vector<std::underlying_type<attribute_tag>::type>
+    tags() const
+    {
         std::vector<std::underlying_type<attribute_tag>::type> keys;
         boost::copy(attributes_ | boost::adaptors::map_keys, std::back_inserter(keys));
         return keys;
     }
 
-    inline byte_array attribute(attribute_tag tag) const {
+    inline
+    byte_array
+    attribute(attribute_tag tag) const
+    {
         if (!contains(attributes_, to_underlying(tag))) {
             return byte_array();
         }
         return attributes_.at(to_underlying(tag));
     }
-    inline void set_attribute(attribute_tag tag, byte_array const& value) {
+    inline
+    void
+    set_attribute(attribute_tag tag, byte_array const& value) {
         attributes_[to_underlying(tag)] = value;
     }
-    inline void remove(attribute_tag tag) {
+    inline
+    void
+    remove(attribute_tag tag) {
         set_attribute(tag, byte_array());
     }
 
@@ -86,11 +95,17 @@ public:
 
     /** @name String attribute get/set. */
     /**@{*/
-    inline std::string string(attribute_tag tag) const {
+    inline
+    std::string
+    string(attribute_tag tag) const
+    {
         byte_array data = attribute(tag);
         return std::string(data.begin(), data.end());
     }
-    inline void set_string(attribute_tag tag, std::string const& value) {
+
+    inline
+    void
+    set_string(attribute_tag tag, std::string const& value) {
         set_attribute(tag, byte_array::wrap(value.c_str(), value.size()));
     }
     /**@}*/
