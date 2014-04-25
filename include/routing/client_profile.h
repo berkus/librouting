@@ -112,14 +112,30 @@ public:
 
     /** @name Type-specific methods for individual attributes. */
     /**@{*/
-    inline std::string host_name()  const { return string(attribute_tag::hostname); }
-    inline std::string owner_nickname() const { return string(attribute_tag::owner_nickname); }
-    inline std::string owner_firstname() const { return string(attribute_tag::owner_firstname); }
-    inline std::string owner_lastname() const { return string(attribute_tag::owner_lastname); }
-    inline std::string owner_email() const { return string(attribute_tag::owner_email); }
-    inline std::string city()       const { return string(attribute_tag::city); }
-    inline std::string region()     const { return string(attribute_tag::region); }
-    inline std::string country()    const { return string(attribute_tag::country); }
+    inline std::string host_name()  const {
+        return string(attribute_tag::hostname);
+    }
+    inline std::string owner_nickname() const {
+        return string(attribute_tag::owner_nickname);
+    }
+    inline std::string owner_firstname() const {
+        return string(attribute_tag::owner_firstname);
+    }
+    inline std::string owner_lastname() const {
+        return string(attribute_tag::owner_lastname);
+    }
+    inline std::string owner_email() const {
+        return string(attribute_tag::owner_email);
+    }
+    inline std::string city()       const {
+        return string(attribute_tag::city);
+    }
+    inline std::string region()     const {
+        return string(attribute_tag::region);
+    }
+    inline std::string country()    const {
+        return string(attribute_tag::country);
+    }
 
     inline void set_host_name(std::string const& str) {
         set_string(attribute_tag::hostname, str);
@@ -161,7 +177,8 @@ public:
     inline void enflurry(flurry::oarchive& oa) const {
         oa << attributes_;
     }
-    inline byte_array enflurry() const {
+    inline byte_array enflurry() const
+    {
         byte_array out;
         {
             byte_array_owrap<flurry::oarchive> write(out);
@@ -169,11 +186,13 @@ public:
         }
         return out;
     }
-    inline void deflurry(flurry::iarchive& ia) {
+    inline void deflurry(flurry::iarchive& ia)
+    {
         attributes_.clear();
         ia >> attributes_;
     }
-    inline void deflurry(byte_array const& data) {
+    inline void deflurry(byte_array const& data)
+    {
         attributes_.clear();
         byte_array_iwrap<flurry::iarchive> read(data);
         read.archive() >> attributes_;
