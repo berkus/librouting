@@ -119,19 +119,20 @@ registration_server::udp_dispatch(byte_array &msg, comm::endpoint const& srcep)
         return;
     }
 
-    switch (code) {
-    case REG_REQUEST | REG_INSERT1:
-        return do_insert1(read, srcep);
-    case REG_REQUEST | REG_INSERT2:
-        return do_insert2(read, srcep);
-    case REG_REQUEST | REG_LOOKUP:
-        return do_lookup(read, srcep);
-    case REG_REQUEST | REG_SEARCH:
-        return do_search(read, srcep);
-    case REG_REQUEST | REG_DELETE:
-        return do_delete(read, srcep);
-    default:
-        logger::debug() << "Received message from " << srcep << " with bad request code";
+    switch (code)
+    {
+        case REG_REQUEST | REG_INSERT1:
+            return do_insert1(read, srcep);
+        case REG_REQUEST | REG_INSERT2:
+            return do_insert2(read, srcep);
+        case REG_REQUEST | REG_LOOKUP:
+            return do_lookup(read, srcep);
+        case REG_REQUEST | REG_SEARCH:
+            return do_search(read, srcep);
+        case REG_REQUEST | REG_DELETE:
+            return do_delete(read, srcep);
+        default:
+            logger::debug() << "Received message from " << srcep << " with bad request code";
     }
 }
 
