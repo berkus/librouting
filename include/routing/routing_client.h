@@ -10,6 +10,7 @@
 
 #include <boost/signals2/signal.hpp>
 #include "ssu/peer_id.h"
+#include "ssu/host.h"
 
 namespace uia {
 namespace routing {

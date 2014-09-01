@@ -16,6 +16,7 @@
 #include "arsenal/byte_array_wrap.h"
 #include "comm/socket.h"
 #include "arsenal/underlying.h"
+#include "arsenal/algorithm.h"
 
 namespace uia {
 namespace routing {
