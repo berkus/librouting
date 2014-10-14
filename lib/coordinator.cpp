@@ -14,7 +14,7 @@
 #include "comm/socket_receiver.h"
 #include "routing/coordinator.h"
 #include "routing/private/regserver_client.h" // @fixme This is tied to regserver now.
-#include "ssu/peer_id.h"
+#include "sss/peer_identity.h"
 
 using namespace std;
 using namespace uia::routing::internal;
@@ -43,7 +43,7 @@ private:
     void receive(byte_array const& msg, comm::socket_endpoint const& src) override;
 
 public:
-    routing_receiver(shared_ptr<ssu::host> host);
+    routing_receiver(shared_ptr<sss::host> host);
 
     inline void insert_nonce(byte_array const& nonce, client* c) {
         hashed_nonce_clients_.insert(make_pair(nonce, c));
@@ -55,7 +55,7 @@ public:
     }
 };
 
-routing_receiver::routing_receiver(shared_ptr<ssu::host> host)
+routing_receiver::routing_receiver(shared_ptr<sss::host> host)
     : comm::socket_receiver(host.get(), routing_magic)
 {
     logger::debug() << "Routing receiver created";
@@ -112,7 +112,7 @@ void routing_receiver::receive(byte_array const& msg, comm::socket_endpoint cons
 class client_coordinator::coordinator_impl
 {
 public:
-    ssu::host& host_;
+    sss::host& host_;
     routing_receiver routing_receiver_;
 
     // Global registry of every routing_client for this host, so we can
@@ -120,7 +120,7 @@ public:
     unordered_set<client*> routing_clients_;
 
 public:
-    coordinator_impl(shared_ptr<ssu::host> host)
+    coordinator_impl(shared_ptr<sss::host> host)
         : host_(*host.get())
         , routing_receiver_(host)
     {}
@@ -130,7 +130,7 @@ public:
 // client_coordinator
 //=====================================================================================================================
 
-client_coordinator::client_coordinator(shared_ptr<ssu::host> host)
+client_coordinator::client_coordinator(shared_ptr<sss::host> host)
     : host_(*host.get())
     , pimpl_(stdext::make_unique<coordinator_impl>(host))
 {}

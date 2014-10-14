@@ -19,8 +19,8 @@ class registration_server
 {
     friend class uia::routing::internal::registry_record;
 
-    // The network code actually duplicates some from ssu::link, maybe this can be refactored.
-    std::shared_ptr<ssu::host> host_;
+    // The network code actually duplicates some from comm::socket, maybe this can be refactored.
+    std::shared_ptr<sss::host> host_;
     boost::asio::io_service io_service_;
     boost::asio::ip::udp::socket sock;
     boost::asio::ip::udp::socket sock6;
@@ -53,7 +53,7 @@ class registration_server
     void timeout_record(internal::registry_record* rec);
 
 public:
-    registration_server(std::shared_ptr<ssu::host> host);
+    registration_server(std::shared_ptr<sss::host> host);
 
     inline void run() { io_service_.run(); }
 

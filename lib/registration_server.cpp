@@ -13,7 +13,7 @@ namespace routing {
 
 registration_server::registration_server()
 {
-    server_ = make_shared<ssu::server>(host);
+    server_ = make_shared<sss::server>(host);
     server_->on_new_connection.connect([&] { on_new_connection(server); });
     bool listening = server_->listen("routing", "Overlay routing layer",
         "regserver-v1", "Registration server protocol");
@@ -159,7 +159,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& read,
         return;
     }
 
-    ssu::peer_id peerid(initiator_eid);
+    sss::peer_identity peerid(initiator_eid);
 
     // The client's INSERT1 contains the hash of its nonce;
     // the INSERT2 contains the actual nonce,
@@ -197,8 +197,8 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& read,
     // because DSA signature verification is much more costly.
     // @todo Support NaCl identity schemes (ecdsa etc).
     // @todo Would probably be good to send back an error response.
-    ssu::identity identi(initiator_eid);
-    if (identi.key_scheme() != ssu::identity::scheme::rsa160)
+    sss::peer_identity identi(initiator_eid);
+    if (identi.key_scheme() != sss::peer_identity::scheme::rsa160)
     {
         logger::debug() << "Received Insert2 for unsupported ID scheme " << identi.scheme_name();
         chalhash.insert(challenge, byte_array());
@@ -500,7 +500,7 @@ registration_server::do_delete(byte_array_iwrap<flurry::iarchive>& read,
 }
 
 registry_record*
-registration_server::find_caller(const ssu::endpoint &ep, const byte_array &initiator_eid,
+registration_server::find_caller(const sss::endpoint &ep, const byte_array &initiator_eid,
                                  const byte_array &initiator_hashed_nonce)
 {
     // @TODO: list the existing records here before lookup?

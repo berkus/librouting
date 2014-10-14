@@ -1,5 +1,5 @@
 #include "routing/private/regserver_client.h"
-#include "ssu/host.h"
+#include "sss/host.h"
 #include "comm/socket.h"
 #include "krypto/sha256_hash.h"
 
@@ -16,7 +16,7 @@ namespace internal {
  */
 const boost::posix_time::time_duration regserver_client::max_rereg = bp::minutes(15);
 
-regserver_client::regserver_client(ssu::host *h)
+regserver_client::regserver_client(sss::host *h)
     : client()
     , host_(h)
     , state_(state::idle)
@@ -59,12 +59,12 @@ void regserver_client::disconnect()
 
     // Fail all outstanding lookup and search requests
     // XX provide a better error indication?
-    for (const ssu::peer_id &id : lookups)
+    for (const sss::peer_identity &id : lookups)
         on_lookup_done(id, uia::comm::endpoint(), client_profile());
-    for (const ssu::peer_id &id : punches)
+    for (const sss::peer_identity &id : punches)
         on_lookup_done(id, uia::comm::endpoint(), client_profile());
     for (const std::string &text : searches)
-        on_search_done(text, std::vector<ssu::peer_id>(), true);
+        on_search_done(text, std::vector<sss::peer_identity>(), true);
 
     state_ = state::idle;
     addrs.clear();
@@ -216,7 +216,7 @@ void regserver_client::go_insert2()
     logger::debug() << "Insert2";
 
     // Find our serialized public key to send to the server.
-    ssu::identity identi = host_->host_identity();
+    sss::peer_identity identi = host_->host_identity();
     key = identi.public_key();
 
     // Compute the hash of the message components to be signed.
@@ -277,7 +277,7 @@ void regserver_client::got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is)
     on_ready();
 }
 
-void regserver_client::lookup(const ssu::peer_id& idtarget, bool notify)
+void regserver_client::lookup(const sss::peer_identity& idtarget, bool notify)
 {
     assert(is_registered());
 
@@ -291,7 +291,7 @@ void regserver_client::lookup(const ssu::peer_id& idtarget, bool notify)
     retry_timer_.start();
 }
 
-void regserver_client::send_lookup(const ssu::peer_id& idtarget, bool notify)
+void regserver_client::send_lookup(const sss::peer_identity& idtarget, bool notify)
 {
     logger::debug() << "Send lookup for ID " << idtarget;
 
@@ -335,7 +335,7 @@ void regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, 
         logger::debug() << "Useless lookup result";
         return;
     }
-    logger::debug() << "Processed lookup for " << ssu::peer_id(targetid);
+    logger::debug() << "Processed lookup for " << sss::peer_identity(targetid);
     lookups.erase(targetid);
     punches.erase(targetid);
     on_lookup_done(targetid, targetloc, reginfo);
@@ -384,9 +384,9 @@ void regserver_client::got_search_reply(byte_array_iwrap<flurry::iarchive>& is)
 
     // Decode the list of result IDs
     // @todo Change this into a single flurry read
-    vector<ssu::peer_id> ids;
+    vector<sss::peer_identity> ids;
     for (int i = 0; i < nresults; i++) {
-        ssu::peer_id id;
+        sss::peer_identity id;
         is.archive() >> id;
         // if (rs.status() != rs.Ok) {
         //     logger::debug() << this << "got invalid Search result ID";
@@ -475,10 +475,10 @@ void regserver_client::timeout(bool failed)
                     reregister();
             } else {
                 // Re-send all outstanding requests
-                for (const ssu::peer_id &id : lookups) {
+                for (const sss::peer_identity &id : lookups) {
                     send_lookup(id, false);
                 }
-                for (const ssu::peer_id &id : punches) {
+                for (const sss::peer_identity &id : punches) {
                     send_lookup(id, true);
                 }
                 for (const std::string &text : searches) {

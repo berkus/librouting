@@ -13,8 +13,8 @@
 #include <boost/signals2/signal.hpp>
 #include "routing/client_profile.h"
 #include "routing/routing_client.h"
-#include "ssu/timer.h"
-#include "ssu/peer_id.h"
+#include "sss/timer.h"
+#include "sss/peer_identity.h"
 
 namespace uia {
 namespace routing {
@@ -58,7 +58,7 @@ private:
     // Max time before rereg - 1 hr
     static const boost::posix_time::time_duration max_rereg;
 
-    ssu::host* const host_;      // Pointer to our per-host state
+    sss::host* const host_;      // Pointer to our per-host state
 
     state state_;
     // DNS resolution info
@@ -78,15 +78,15 @@ private:
     byte_array sig;     // Our signature to send in Insert2
 
     // Outstanding lookups and searches for which we're awaiting replies.
-    std::unordered_set<ssu::peer_id> lookups;  // IDs we're doing lookups on
-    std::unordered_set<ssu::peer_id> punches;  // Lookups with notify requests
+    std::unordered_set<sss::peer_identity> lookups;  // IDs we're doing lookups on
+    std::unordered_set<sss::peer_identity> punches;  // Lookups with notify requests
     std::unordered_set<std::string> searches;  // Strings we're searching for
 
     // Retry state
-    ssu::async::timer retry_timer_;   // Retransmission timer
+    sss::async::timer retry_timer_;   // Retransmission timer
     bool persist;       // True if we should never give up
 
-    ssu::async::timer rereg_timer_;   // Counts lifetime of our reg entry
+    sss::async::timer rereg_timer_;   // Counts lifetime of our reg entry
 
     // Error state
     std::string error_string_;
@@ -95,10 +95,10 @@ private:
     void fail(const std::string &error);
 
 public:
-    regserver_client(ssu::host *h);
+    regserver_client(sss::host *h);
     ~regserver_client();
 
-    /*shared_ptr<*/ssu::host* get_host() override { return host_; }
+    /*shared_ptr<*/sss::host* get_host() override { return host_; }
 
     // Set the metadata to attach to our registration
     inline client_profile profile() const { return inf; }
@@ -136,7 +136,7 @@ public:
 
     static std::string state_string(int state);
 
-    void lookup(ssu::peer_id const& id, bool notify = false) override;
+    void lookup(sss::peer_identity const& id, bool notify = false) override;
     void search(std::string const& text) override;
 
 private:
@@ -149,7 +149,7 @@ private:
     void send_insert2();
     void got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is);
 
-    void send_lookup(const ssu::peer_id& id, bool notify);
+    void send_lookup(const sss::peer_identity& id, bool notify);
     void got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool isnotify);
 
     void send_search(const std::string &text);

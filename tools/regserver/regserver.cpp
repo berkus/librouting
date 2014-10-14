@@ -12,14 +12,14 @@
 #include "comm/socket.h"
 #include "comm/udp_socket.h"
 #include "routing/private/regserver_client.h" // For some shared constants
-#include "ssu/identity.h"
-#include "ssu/peer_id.h"
-#include "ssu/host.h"
+#include "sss/identity.h"
+#include "sss/peer_id.h"
+#include "sss/host.h"
 #include "regserver.h"
 
 using namespace uia::routing::internal;
 using namespace std;
-using namespace ssu;
+using namespace sss;
 
 constexpr int MAX_RESULTS = 100;     // Maximum number of search results
 
@@ -30,7 +30,7 @@ namespace routing {
 // registration_server implementation
 //=================================================================================================
 
-registration_server::registration_server(std::shared_ptr<ssu::host> host)
+registration_server::registration_server(std::shared_ptr<sss::host> host)
     : host_(host)
     , sock(io_service_)
     , sock6(io_service_)
@@ -219,7 +219,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
         return;
     }
 
-    ssu::peer_id peerid(idi);
+    sss::peer_identity peerid(idi);
 
     // The client's INSERT1 contains the hash of its nonce;
     // the INSERT2 contains the actual nonce,
@@ -254,8 +254,8 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
     // For now we only support RSA-based identities,
     // because DSA signature verification is much more costly.
     // XX would probably be good to send back an error response.
-    ssu::identity identi(idi);
-    if (identi.key_scheme() != ssu::identity::scheme::rsa160)
+    sss::peer_identity identi(idi);
+    if (identi.key_scheme() != sss::peer_identity::scheme::rsa160)
     {
         logger::debug() << "Received Insert for unsupported ID scheme " << identi.scheme_name();
         chalhash.insert(make_pair(chal, byte_array()));
@@ -598,7 +598,7 @@ registration_server::timeout_record(internal::registry_record* rec)
 int
 main(int argc, char **argv)
 {
-    std::shared_ptr<ssu::host> host(make_shared<ssu::host>()); // to create timer engines...
+    std::shared_ptr<sss::host> host(make_shared<sss::host>()); // to create timer engines...
     uia::routing::registration_server regserver(host);
     regserver.run();
 }

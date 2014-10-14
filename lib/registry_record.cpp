@@ -9,7 +9,7 @@
 #include "arsenal/logging.h"
 #include "routing/private/registry_record.h"
 #include "routing/registration_server.h"
-#include "ssu/peer_id.h"
+#include "sss/peer_id.h"
 
 namespace uia {
 namespace routing {
@@ -31,7 +31,7 @@ registry_record::registry_record(registration_server& srv,
     , profile_info_(info)
     , timer_(srv.host_.get())
 {
-    logger::debug() << "Registering record for " << ssu::peer_id(id) << " at " << ep;
+    logger::debug() << "Registering record for " << sss::peer_identity(id) << " at " << ep;
 
     // Set the record's timeout
     timer_.on_timeout.connect([this, &srv](bool){ srv.timeout_record(this); });
@@ -40,7 +40,7 @@ registry_record::registry_record(registration_server& srv,
 
 registry_record::~registry_record()
 {
-    logger::debug() << "~registry_record: deleting record for " << ssu::peer_id(id);
+    logger::debug() << "~registry_record: deleting record for " << sss::peer_identity(id);
 }
 
 } // internal namespace

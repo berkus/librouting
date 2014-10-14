@@ -9,8 +9,8 @@
 #pragma once
 
 #include <memory>
-#include "ssu/server.h"
-#include "ssu/host.h"
+#include "sss/server.h"
+#include "sss/host.h"
 
 namespace uia {
 namespace routing {
@@ -24,9 +24,9 @@ class registration_server
 {
     friend class internal::registry_record;
 
-    std::shared_ptr<ssu::host> host_;
-    ssu::server server_;
-    std::vector<ssu::stream> sessions_;
+    std::shared_ptr<sss::host> host_;
+    sss::server server_;
+    std::vector<sss::stream> sessions_;
 
     // Hash of insert challenge cookies and corresponding responses
     std::unordered_map<byte_array, byte_array> chalhash;
@@ -48,20 +48,20 @@ class registration_server
     void timeout_record(internal::registry_record* rec);
 
 public:
-    registration_server(std::shared_ptr<ssu::host> host);
+    registration_server(std::shared_ptr<sss::host> host);
 
 private:
     void on_incoming_record();
-    void do_insert1(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<ssu::stream> stream);
-    void do_insert2(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<ssu::stream> stream);
-    void do_lookup(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<ssu::stream> stream);
-    void do_search(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<ssu::stream> stream);
-    void do_delete(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<ssu::stream> stream);
+    void do_insert1(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
+    void do_insert2(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
+    void do_lookup(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
+    void do_search(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
+    void do_delete(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
 
-    void reply_insert1(std::shared_ptr<ssu::stream> stream, const byte_array &idi, const byte_array &nhi);
+    void reply_insert1(std::shared_ptr<sss::stream> stream, const byte_array &idi, const byte_array &nhi);
     void reply_lookup(internal::registry_record *reci, uint32_t replycode,
         const byte_array &idr, internal::registry_record *recr);
-    byte_array calc_cookie(const ssu::peer_id &eid, const byte_array &idi,
+    byte_array calc_cookie(const sss::peer_id &eid, const byte_array &idi,
         const byte_array &nhi);
     internal::registry_record* find_caller(const comm::endpoint &ep,
         const byte_array &idi, const byte_array &nhi);

@@ -9,8 +9,8 @@
 #pragma once
 
 #include <boost/signals2/signal.hpp>
-#include "ssu/peer_id.h"
-#include "ssu/host.h"
+#include "sss/peer_identity.h"
+#include "sss/host.h"
 
 namespace uia {
 namespace routing {
@@ -34,7 +34,7 @@ class client : public client_destroyer
 public:
     virtual ~client() { on_destroyed(this); }
 
-    virtual /*shared_ptr<*/ssu::host* get_host() = 0;
+    virtual /*shared_ptr<*/sss::host* get_host() = 0;
 
     // Get the metadata about this client.
     std::shared_ptr<client_profile> profile() const;
@@ -55,7 +55,7 @@ public:
     // Request information about a specific ID.
     // Will send an on_lookup_done() signal when the request completes.
     // If 'notify', ask whoever found the ID to notify the target as well.
-    virtual void lookup(ssu::peer_id const& id, bool notify = false) = 0;
+    virtual void lookup(sss::peer_identity const& id, bool notify = false) = 0;
 
     // Search for IDs of clients with metadata matching a search string.
     // Will send an on_search_done() signal when the request completes.
@@ -65,11 +65,11 @@ public:
     ready_signal on_ready; /* Client is ready to resolve EIDs */
     ready_signal on_disconnected; /* Client is not ready anymore */
 
-    typedef boost::signals2::signal<void (ssu::peer_id const& /* target peer */,
+    typedef boost::signals2::signal<void (sss::peer_identity const& /* target peer */,
         uia::comm::endpoint const& /* endpoint found for this peer */,
         client_profile const& /* peer's profile data */)>
         lookup_signal;
-    typedef boost::signals2::signal<void (ssu::peer_id const& /* target peer */)>
+    typedef boost::signals2::signal<void (sss::peer_identity const& /* target peer */)>
         lookup_fail_signal;
 
     /**
@@ -86,7 +86,7 @@ public:
     lookup_signal on_lookup_notify;
 
     typedef boost::signals2::signal<void (std::string const& /*search term*/,
-        std::vector<ssu::peer_id> const& /* peers matching this term */,
+        std::vector<sss::peer_identity> const& /* peers matching this term */,
         bool /*last result received*/)>
         search_signal;
 
@@ -96,7 +96,7 @@ public:
     search_signal on_search_done;
 
     inline void search_failed(std::string const& term) {
-        on_search_done(term, std::vector<ssu::peer_id>(), true);
+        on_search_done(term, std::vector<sss::peer_identity>(), true);
     }
 };
 

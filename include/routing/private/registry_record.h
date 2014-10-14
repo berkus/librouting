@@ -9,9 +9,9 @@
 #pragma once
 
 #include "arsenal/byte_array.h"
-#include "ssu/host.h"//@todo Remove this when comm/socket is decoupled from ssu
+#include "sss/host.h"//@todo Remove this when comm/socket is decoupled from sss
 #include "comm/socket.h"
-#include "ssu/timer.h" // @todo move ssu::async to async
+#include "sss/timer.h" // @todo move sss::async to async
 
 namespace uia {
 namespace routing {
@@ -34,7 +34,7 @@ class registry_record
     byte_array const nhi;
     uia::comm::endpoint const ep;
     byte_array const profile_info_;
-    ssu::async::timer timer_;
+    sss::async::timer timer_;
 
     registry_record(registration_server& srv, byte_array const& id, byte_array const& nhi,
         uia::comm::endpoint const& ep, byte_array const& info); // ep based for old regserver
