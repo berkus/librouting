@@ -18,10 +18,10 @@ namespace routing {
 class client_profile;
 class client;
 
-/* Helper base class to keep on_destroyed constructed in derived class destructor. */
+/* Helper base class to keep on_destroyed still intact in derived class destructor. */
 struct client_destroyer
 {
-    typedef boost::signals2::signal<void (client*)> destroyed_signal;
+    using destroyed_signal = boost::signals2::signal<void (client*)>;
     destroyed_signal on_destroyed;
 };
 
@@ -61,16 +61,16 @@ public:
     // Will send an on_search_done() signal when the request completes.
     virtual void search(std::string const& text) = 0;
 
-    typedef boost::signals2::signal<void (void)> ready_signal;
+    using ready_signal = boost::signals2::signal<void (void)>;
     ready_signal on_ready; /* Client is ready to resolve EIDs */
     ready_signal on_disconnected; /* Client is not ready anymore */
 
-    typedef boost::signals2::signal<void (sss::peer_identity const& /* target peer */,
-        uia::comm::endpoint const& /* endpoint found for this peer */,
-        client_profile const& /* peer's profile data */)>
-        lookup_signal;
-    typedef boost::signals2::signal<void (sss::peer_identity const& /* target peer */)>
-        lookup_fail_signal;
+    using lookup_signal
+        = boost::signals2::signal<void (sss::peer_identity const& /* target peer */,
+            uia::comm::endpoint const& /* endpoint found for this peer */,
+            client_profile const& /* peer's profile data */)>;
+    using lookup_fail_signal
+        = boost::signals2::signal<void (sss::peer_identity const& /* target peer */)>;
 
     /**
      * Emitted when lookup request returns some results.
@@ -85,10 +85,9 @@ public:
      */
     lookup_signal on_lookup_notify;
 
-    typedef boost::signals2::signal<void (std::string const& /*search term*/,
+    using search_signal = boost::signals2::signal<void (std::string const& /*search term*/,
         std::vector<sss::peer_identity> const& /* peers matching this term */,
-        bool /*last result received*/)>
-        search_signal;
+        bool /*last result received*/)>;
 
     /**
      * Emitted when search() found some records.

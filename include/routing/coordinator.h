@@ -41,7 +41,7 @@ public:
     void insert_nonce(byte_array const& nonce, client* c);
     void clear_nonce(byte_array const& nonce);
 
-    typedef boost::signals2::signal<void (client*)> routing_client_signal;
+    using routing_client_signal = boost::signals2::signal<void (client*)>;
     routing_client_signal on_routing_client_created;
     routing_client_signal on_routing_client_deleted;
 };
