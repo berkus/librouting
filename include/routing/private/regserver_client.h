@@ -41,7 +41,7 @@ constexpr uint32_t REG_DELETE     = 0x04;    // Remove registration record, sent
 
 /**
  * Implementation class talking to registration/rendezvous server.
- * It forwards its signals to routing_client instantiated by consumer, e.g. SSU host.
+ * It forwards its signals to routing_client instantiated by consumer, e.g. SSS host.
  */
 class regserver_client : public client
 {

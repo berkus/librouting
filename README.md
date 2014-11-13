@@ -31,7 +31,7 @@ Directory Structure
 
 lib         Core routing implementation library (librouting)
 regserver   Lightweight standalone registration server for NAT traversal
-            This server may be integrated into every host running SSU.
+            This server may be integrated into every host running SSS.
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/berkus/librouting/trend.png)](https://bitdeli.com/free "Bitdeli Badge")

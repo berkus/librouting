@@ -16,7 +16,7 @@ namespace uia {
 namespace routing {
 
 /**
- * Implements regserver protocol as part of SSU stream.
+ * Implements regserver protocol as part of SSS stream.
  * This service allows non- or weakly-encrypted connections from clients, which
  * means it must run on (multiple) separate channel(s). @todo How?
  */
