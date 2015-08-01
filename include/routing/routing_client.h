@@ -9,7 +9,7 @@
 #pragma once
 
 #include <boost/signals2/signal.hpp>
-#include "sss/peer_identity.h"
+#include "sss/channels/peer_identity.h"
 #include "sss/host.h"
 
 namespace uia {
@@ -55,7 +55,7 @@ public:
     // Request information about a specific ID.
     // Will send an on_lookup_done() signal when the request completes.
     // If 'notify', ask whoever found the ID to notify the target as well.
-    virtual void lookup(sss::peer_identity const& id, bool notify = false) = 0;
+    virtual void lookup(uia::peer_identity const& id, bool notify = false) = 0;
 
     // Search for IDs of clients with metadata matching a search string.
     // Will send an on_search_done() signal when the request completes.
@@ -66,11 +66,11 @@ public:
     ready_signal on_disconnected; /* Client is not ready anymore */
 
     using lookup_signal
-        = boost::signals2::signal<void (sss::peer_identity const& /* target peer */,
+        = boost::signals2::signal<void (uia::peer_identity const& /* target peer */,
             uia::comm::endpoint const& /* endpoint found for this peer */,
             client_profile const& /* peer's profile data */)>;
     using lookup_fail_signal
-        = boost::signals2::signal<void (sss::peer_identity const& /* target peer */)>;
+        = boost::signals2::signal<void (uia::peer_identity const& /* target peer */)>;
 
     /**
      * Emitted when lookup request returns some results.
@@ -86,7 +86,7 @@ public:
     lookup_signal on_lookup_notify;
 
     using search_signal = boost::signals2::signal<void (std::string const& /*search term*/,
-        std::vector<sss::peer_identity> const& /* peers matching this term */,
+        std::vector<uia::peer_identity> const& /* peers matching this term */,
         bool /*last result received*/)>;
 
     /**
@@ -95,7 +95,7 @@ public:
     search_signal on_search_done;
 
     inline void search_failed(std::string const& term) {
-        on_search_done(term, std::vector<sss::peer_identity>(), true);
+        on_search_done(term, std::vector<uia::peer_identity>(), true);
     }
 };
 
