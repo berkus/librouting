@@ -25,10 +25,6 @@ namespace internal {
 
 constexpr uint16_t REGSERVER_DEFAULT_PORT = 9669;
 
-// Control chunk magic value for the Netsteria registration protocol.
-// The upper byte is zero to distinguish control packets from flow packets.
-constexpr comm::magic_t REG_MAGIC = 0x00524f55; // 'xROU'
-
 constexpr uint32_t REG_REQUEST    = 0x100;   // Client-to-server request
 constexpr uint32_t REG_RESPONSE   = 0x200;   // Server-to-client response
 constexpr uint32_t REG_NOTIFY     = 0x300;   // Server-to-client async callback
