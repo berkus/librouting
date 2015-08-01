@@ -121,7 +121,7 @@ public:
 
     inline bool is_idle() const { return state_ == state::idle; }
     inline bool is_registered() const { return state_ == state::registered; }
-    inline bool is_registering() const { return !is_idle() && !is_registered(); }
+    inline bool is_registering() const { return !is_idle() and !is_registered(); }
 
     inline bool is_ready() const override { return is_registered(); }
 

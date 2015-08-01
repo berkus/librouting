@@ -351,7 +351,7 @@ registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& rxs,
 
     // Send a response to the target as well, if found,
     // so that the two can perform UDP hole punching if desired.
-    if (recr && notify) {
+    if (recr and notify) {
         reply_lookup(recr, REG_NOTIFY | REG_LOOKUP, idi, reci);
     }
 }

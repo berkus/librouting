@@ -450,7 +450,7 @@ void regserver_client::timeout(bool failed)
             break;
         case state::insert1:
         case state::insert2:
-            if (failed && !persist) {
+            if (failed and !persist) {
                 fail("Timeout connecting to registration server");
             } else {
                 if (state_ == state::insert1) {
@@ -464,7 +464,7 @@ void regserver_client::timeout(bool failed)
             break;
         case state::registered:
             // Timeout on a Lookup or Search.
-            if (lookups.empty() && punches.empty() && searches.empty()) {
+            if (lookups.empty() and punches.empty() and searches.empty()) {
                 // Nothing to do - don't bother with the timer.
                 retry_timer_.stop();
             } else if (failed) {
