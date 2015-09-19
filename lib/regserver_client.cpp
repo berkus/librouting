@@ -159,8 +159,8 @@ regserver_client::go_insert1()
     // and register this client to receive replies keyed on this nonce.
     if (ni.is_empty()) {
         ni.resize(crypto::SHA256_HASH_LEN);
-        crypto::fill_random(ni.as_vector());
-        nhi = crypto::sha256::hash(ni);
+        // crypto::fill_random(ni.as_vector());
+        // nhi = crypto::sha256::hash(ni);
         host_->coordinator->insert_nonce(nhi, this);
     }
     assert(ni.size() == crypto::SHA256_HASH_LEN);
@@ -180,11 +180,11 @@ regserver_client::send_insert1()
     // Send our Insert1 message
     byte_array msg;
     {
-        msg.resize(4);
-        msg.as<big_uint32_t>()[0] = REG_MAGIC;
+        // msg.resize(4);
+        // msg.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(msg);
-        write.archive() << (REG_REQUEST | REG_INSERT1) << idi << nhi;
+        // byte_array_owrap<flurry::oarchive> write(msg);
+        // write.archive() << (REG_REQUEST | REG_INSERT1) << idi << nhi;
     }
     send(msg);
 }
@@ -235,8 +235,8 @@ regserver_client::go_insert2()
     }
 
     // Generate our signature.
-    sig = identi.sign(crypto::sha256::hash(pack));
-    assert(!sig.is_empty());
+    // sig = identi.sign(crypto::sha256::hash(pack));
+    // assert(!sig.is_empty());
 
     state_ = state::insert2;
     send_insert2();
@@ -251,12 +251,13 @@ regserver_client::send_insert2()
     // Send our Insert2 message
     byte_array msg;
     {
-        msg.resize(4);
-        msg.as<big_uint32_t>()[0] = REG_MAGIC;
+        // msg.resize(4);
+        // msg.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(msg);
-        write.archive() << (REG_REQUEST | REG_INSERT2) << idi << ni << chal << info_blob(inf)
-                        << key << sig;
+        // byte_array_owrap<flurry::oarchive> write(msg);
+        // write.archive() << (REG_REQUEST | REG_INSERT2) << idi << ni << chal << info_blob(inf) <<
+        // key
+        //                 << sig;
     }
     send(msg);
 }
@@ -309,11 +310,11 @@ regserver_client::send_lookup(const uia::peer_identity& idtarget, bool notify)
     // Prepare the Lookup message
     byte_array msg;
     {
-        msg.resize(4);
-        msg.as<big_uint32_t>()[0] = REG_MAGIC;
+        // msg.resize(4);
+        // msg.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(msg);
-        write.archive() << (REG_REQUEST | REG_LOOKUP) << idi << nhi << idtarget.id() << notify;
+        // byte_array_owrap<flurry::oarchive> write(msg);
+        // write.archive() << (REG_REQUEST | REG_LOOKUP) << idi << nhi << idtarget.id() << notify;
     }
     send(msg);
 }
@@ -369,11 +370,11 @@ regserver_client::send_search(const std::string& text)
     // Prepare the Lookup message
     byte_array msg;
     {
-        msg.resize(4);
-        msg.as<big_uint32_t>()[0] = REG_MAGIC;
+        // msg.resize(4);
+        // msg.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(msg);
-        write.archive() << (REG_REQUEST | REG_SEARCH) << idi << nhi << text;
+        // byte_array_owrap<flurry::oarchive> write(msg);
+        // write.archive() << (REG_REQUEST | REG_SEARCH) << idi << nhi << text;
     }
     send(msg);
 }
@@ -422,11 +423,11 @@ regserver_client::send_delete()
     // Prepare the Delete message
     byte_array msg;
     {
-        msg.resize(4);
-        msg.as<big_uint32_t>()[0] = REG_MAGIC;
+        // msg.resize(4);
+        // msg.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(msg);
-        write.archive() << (REG_REQUEST | REG_DELETE) << idi << nhi;
+        // byte_array_owrap<flurry::oarchive> write(msg);
+        // write.archive() << (REG_REQUEST | REG_DELETE) << idi << nhi;
     }
     send(msg);
 }

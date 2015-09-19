@@ -63,11 +63,11 @@ routing_receiver::receive(boost::asio::const_buffer msg, uia::comm::socket_endpo
 {
     logger::debug() << "Routing receiver: received routing packet";
     // Decode the first part of the message
-    uint32_t code;
+    // uint32_t code;
     byte_array nhi;
-    byte_array_iwrap<flurry::iarchive> read(msg);
-    read.archive().skip_raw_data(4);
-    read.archive() >> code >> nhi;
+    // byte_array_iwrap<flurry::iarchive> read(msg);
+    // read.archive().skip_raw_data(4);
+    // read.archive() >> code >> nhi;
 
     // Find the appropriate client
     if (!contains(hashed_nonce_clients_, nhi)) {
@@ -83,23 +83,18 @@ routing_receiver::receive(boost::asio::const_buffer msg, uia::comm::socket_endpo
     }
 
     // Dispatch it appropriately
-    switch (code) {
-    case REG_RESPONSE | REG_INSERT1:
-        return cli->got_insert1_reply(read);
-    case REG_RESPONSE | REG_INSERT2:
-        return cli->got_insert2_reply(read);
-    case REG_RESPONSE | REG_LOOKUP:
-        return cli->got_lookup_reply(read, false);
-    case REG_RESPONSE | REG_SEARCH:
-        return cli->got_search_reply(read);
-    case REG_RESPONSE | REG_DELETE:
-        return cli->got_delete_reply(read);
-    case REG_NOTIFY | REG_LOOKUP:
-        return cli->got_lookup_reply(read, true);
-    // @todo Add regserver REG_REQUEST handling for implementing regserver directly inside client.
-    default:
-        logger::debug() << this << "bad message code" << code;
-    }
+    // switch (code) {
+    //     case REG_RESPONSE | REG_INSERT1: return cli->got_insert1_reply(read);
+    //     case REG_RESPONSE | REG_INSERT2: return cli->got_insert2_reply(read);
+    //     case REG_RESPONSE | REG_LOOKUP: return cli->got_lookup_reply(read, false);
+    //     case REG_RESPONSE | REG_SEARCH: return cli->got_search_reply(read);
+    //     case REG_RESPONSE | REG_DELETE: return cli->got_delete_reply(read);
+    //     case REG_NOTIFY | REG_LOOKUP:
+    //         return cli->got_lookup_reply(read, true);
+    //     // @todo Add regserver REG_REQUEST handling for implementing regserver directly inside
+    //     // client.
+    //     default: logger::debug() << this << "bad message code" << code;
+    // }
 }
 
 //=====================================================================================================================

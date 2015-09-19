@@ -101,34 +101,28 @@ registration_server::udp_dispatch(byte_array& msg, comm::endpoint const& srcep)
 {
     logger::debug() << "Received " << dec << msg.size() << " byte message from " << srcep;
 
-    uint32_t magic, code;
+    // uint32_t magic, code;
 
-    magic = msg.as<big_uint32_t>()[0];
+    // magic = msg.as<big_uint32_t>()[0];
 
-    byte_array_iwrap<flurry::iarchive> read(msg);
-    read.archive().skip_raw_data(4);
-    read.archive() >> code;
+    // byte_array_iwrap<flurry::iarchive> read(msg);
+    // read.archive().skip_raw_data(4);
+    // read.archive() >> code;
 
-    if (magic != REG_MAGIC) {
-        logger::debug() << "Received message from " << srcep << " with bad magic";
-        return;
-    }
+    // if (magic != REG_MAGIC) {
+    //     logger::debug() << "Received message from " << srcep << " with bad magic";
+    //     return;
+    // }
 
-    switch (code)
-    {
-        case REG_REQUEST | REG_INSERT1:
-            return do_insert1(read, srcep);
-        case REG_REQUEST | REG_INSERT2:
-            return do_insert2(read, srcep);
-        case REG_REQUEST | REG_LOOKUP:
-            return do_lookup(read, srcep);
-        case REG_REQUEST | REG_SEARCH:
-            return do_search(read, srcep);
-        case REG_REQUEST | REG_DELETE:
-            return do_delete(read, srcep);
-        default:
-            logger::debug() << "Received message from " << srcep << " with bad request code";
-    }
+    // switch (code) {
+    //     case REG_REQUEST | REG_INSERT1: return do_insert1(read, srcep);
+    //     case REG_REQUEST | REG_INSERT2: return do_insert2(read, srcep);
+    //     case REG_REQUEST | REG_LOOKUP: return do_lookup(read, srcep);
+    //     case REG_REQUEST | REG_SEARCH: return do_search(read, srcep);
+    //     case REG_REQUEST | REG_DELETE: return do_delete(read, srcep);
+    //     default: logger::debug() << "Received message from " << srcep << " with bad request
+    //     code";
+    // }
 }
 
 void
@@ -167,11 +161,11 @@ registration_server::reply_insert1(const comm::endpoint& srcep,
 
     byte_array resp;
     {
-        resp.resize(4);
-        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+        // resp.resize(4);
+        // resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << (REG_RESPONSE | REG_INSERT1) << nhi << challenge;
+        // byte_array_owrap<flurry::oarchive> write(resp);
+        // write.archive() << (REG_RESPONSE | REG_INSERT1) << nhi << challenge;
     }
     send(srcep, resp);
     logger::debug() << "reply_insert1 sent to " << srcep;
@@ -183,23 +177,22 @@ registration_server::calc_cookie(const comm::endpoint& srcep,
                                  const byte_array& nhi)
 {
     // Make sure we have a host secret to key the challenge with
-    if (secret.is_empty())
-    {
-        crypto::hash::value init;
-        crypto::fill_random(init);
-        secret = init;
-    }
-    assert(secret.size() == crypto::hash::size);
+    // if (secret.is_empty()) {
+    //     crypto::hash::value init;
+    //     crypto::fill_random(init);
+    //     secret = init;
+    // }
+    // assert(secret.size() == crypto::hash::size);
 
     // Compute the correct challenge cookie for the message.
     // XX really should use a proper HMAC here.
     byte_array resp;
-    {
-        byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << secret << srcep << idi << nhi << secret;
-    }
+    // {
+    //     byte_array_owrap<flurry::oarchive> write(resp);
+    //     write.archive() << secret << srcep << idi << nhi << secret;
+    // }
 
-    return crypto::sha256::hash(resp);
+    return resp; // crypto::sha256::hash(resp);
 }
 
 void
@@ -222,7 +215,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
     // the INSERT2 contains the actual nonce,
     // so that an eavesdropper can't easily forge an INSERT2
     // after seeing the client's INSERT1 fly past.
-    byte_array nhi = crypto::sha256::hash(ni);
+    byte_array nhi; //= crypto::sha256::hash(ni);
 
     // First check the challenge cookie:
     // if it is invalid (perhaps just because our secret expired),
@@ -251,13 +244,12 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
     // For now we only support RSA-based identities,
     // because DSA signature verification is much more costly.
     // XX would probably be good to send back an error response.
-    sss::peer_identity identi(idi);
-    if (identi.key_scheme() != sss::peer_identity::scheme::rsa160)
-    {
-        logger::debug() << "Received Insert for unsupported ID scheme " << identi.scheme_name();
-        chalhash.insert(make_pair(chal, byte_array()));
-        return;
-    }
+    uia::peer_identity identi(idi);
+    // if (identi.key_scheme() != sss::peer_identity::scheme::rsa160) {
+    //     logger::debug() << "Received Insert for unsupported ID scheme " << identi.scheme_name();
+    //     chalhash.insert(make_pair(chal, byte_array()));
+    //     return;
+    // }
 
     // Parse the client's public key and make sure it matches its EID.
     if (!identi.set_key(key)) {
@@ -274,12 +266,11 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
     }
 
     // Verify the client's signature using his public key.
-    if (!identi.verify(crypto::sha256::hash(sigmsg), sig))
-    {
-        logger::debug() << "Signature check for client " << srcep << " failed on insert2";
-        chalhash.insert(make_pair(chal, byte_array()));
-        return;
-    }
+    // if (!identi.verify(crypto::sha256::hash(sigmsg), sig)) {
+    //     logger::debug() << "Signature check for client " << srcep << " failed on insert2";
+    //     chalhash.insert(make_pair(chal, byte_array()));
+    //     return;
+    // }
 
     // Insert an appropriate record into our in-memory client database.
     // This automatically replaces any existing record for the same ID,
@@ -302,12 +293,13 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
     // so it knows how soon it will need to refresh the record.
     byte_array resp;
     {
-        resp.resize(4);
-        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+        // resp.resize(4);
+        // resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << (REG_RESPONSE | REG_INSERT2) << nhi
-            << registry_record::timeout_seconds << srcep;
+        // byte_array_owrap<flurry::oarchive> write(resp);
+        // write.archive() << (REG_RESPONSE | REG_INSERT2) << nhi <<
+        // registry_record::timeout_seconds
+        //                 << srcep;
     }
     send(srcep, resp);
 
@@ -361,15 +353,15 @@ registration_server::reply_lookup(registry_record* reci,
 
     byte_array resp;
     {
-        resp.resize(4);
-        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+        // resp.resize(4);
+        // resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(resp);
-        bool known = (recr != nullptr);
-        write.archive() << replycode << reci->nhi << idr << known;
-        if (known) {
-            write.archive() << recr->ep << recr->profile_info_;
-        }
+        // byte_array_owrap<flurry::oarchive> write(resp);
+        // bool known = (recr != nullptr);
+        // write.archive() << replycode << reci->nhi << idr << known;
+        // if (known) {
+        //     write.archive() << recr->ep << recr->profile_info_;
+        // }
     }
     send(reci->ep, resp);
 }
@@ -476,18 +468,17 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs, const co
     // Return the IDs of the selected records to the caller.
     byte_array resp;
     {
-        resp.resize(4);
-        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+        // resp.resize(4);
+        // resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << (REG_RESPONSE | REG_SEARCH) << nhi << search << complete << nresults;
-        for (auto rec : results)
-        {
-            logger::debug() << "Search result " << rec->id;
-            write.archive() << rec->id;
-            if (--nresults == 0)
-                break;
-        }
+        // byte_array_owrap<flurry::oarchive> write(resp);
+        // write.archive() << (REG_RESPONSE | REG_SEARCH) << nhi << search << complete << nresults;
+        // for (auto rec : results) {
+        //     logger::debug() << "Search result " << rec->id;
+        //     write.archive() << rec->id;
+        //     if (--nresults == 0)
+        //         break;
+        // }
     }
     assert(nresults == 0);
     send(srcep, resp);
@@ -513,17 +504,17 @@ registration_server::do_delete(byte_array_iwrap<flurry::iarchive>& rxs, comm::en
     if (reci == nullptr)
         return;
 
-    bool wasDeleted = idhash.count(idi) > 0;
+    // bool wasDeleted = idhash.count(idi) > 0;
     timeout_record(reci); // will wipe it from idhash table.
 
     // Response back notifying that the record was deleted.
     byte_array resp;
     {
-        resp.resize(4);
-        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+        // resp.resize(4);
+        // resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << (REG_RESPONSE | REG_DELETE) << hashedNonce << wasDeleted;
+        // byte_array_owrap<flurry::oarchive> write(resp);
+        // write.archive() << (REG_RESPONSE | REG_DELETE) << hashedNonce << wasDeleted;
     }
     send(srcep, resp);
 
