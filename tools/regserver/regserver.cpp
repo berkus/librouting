@@ -8,12 +8,10 @@
 //
 #include <regex>
 #include "arsenal/logging.h"
-#include "krypto/sha256_hash.h"
 #include "comm/socket.h"
 #include "comm/udp_socket.h"
 #include "routing/private/regserver_client.h" // For some shared constants
-#include "sss/identity.h"
-#include "sss/peer_id.h"
+#include "sss/channels/peer_identity.h"
 #include "sss/host.h"
 #include "regserver.h"
 
@@ -21,7 +19,7 @@ using namespace uia::routing::internal;
 using namespace std;
 using namespace sss;
 
-constexpr int MAX_RESULTS = 100;     // Maximum number of search results
+constexpr int MAX_RESULTS = 100; // Maximum number of search results
 
 namespace uia {
 namespace routing {
@@ -58,23 +56,22 @@ void
 registration_server::prepare_async_receive(boost::asio::ip::udp::socket& s)
 {
     boost::asio::streambuf::mutable_buffers_type buffer = received_buffer.prepare(2048);
-    s.async_receive_from(
-        boost::asio::buffer(buffer),
-        received_from,
-        boost::bind(&registration_server::udp_ready_read, this,
-          boost::asio::placeholders::error,
-          boost::asio::placeholders::bytes_transferred));
+    s.async_receive_from(boost::asio::buffer(buffer),
+                         received_from,
+                         boost::bind(&registration_server::udp_ready_read,
+                                     this,
+                                     boost::asio::placeholders::error,
+                                     boost::asio::placeholders::bytes_transferred));
 }
 
 void
 registration_server::udp_ready_read(const boost::system::error_code& error,
                                     size_t bytes_transferred)
 {
-    if (!error)
-    {
+    if (!error) {
         logger::debug() << "Received " << dec << bytes_transferred << " bytes via UDP link";
         byte_array b(boost::asio::buffer_cast<const char*>(received_buffer.data()),
-            bytes_transferred);
+                     bytes_transferred);
         udp_dispatch(b, received_from);
         received_buffer.consume(bytes_transferred);
         if (received_from.address().is_v6()) {
@@ -82,9 +79,7 @@ registration_server::udp_ready_read(const boost::system::error_code& error,
         } else {
             prepare_async_receive(sock);
         }
-    }
-    else
-    {
+    } else {
         error_string_ = error.message();
         logger::warning() << "UDP read error - " << error_string_;
     }
@@ -102,7 +97,7 @@ registration_server::send(const comm::endpoint& ep, byte_array const& msg)
 }
 
 void
-registration_server::udp_dispatch(byte_array &msg, comm::endpoint const& srcep)
+registration_server::udp_dispatch(byte_array& msg, comm::endpoint const& srcep)
 {
     logger::debug() << "Received " << dec << msg.size() << " byte message from " << srcep;
 
@@ -160,8 +155,9 @@ registration_server::do_insert1(byte_array_iwrap<flurry::iarchive>& rxs,
  * before spending CPU time checking the client's signature.
  */
 void
-registration_server::reply_insert1(const comm::endpoint &srcep, const byte_array &idi,
-                                   const byte_array &nhi)
+registration_server::reply_insert1(const comm::endpoint& srcep,
+                                   const byte_array& idi,
+                                   const byte_array& nhi)
 {
     // Compute the correct challenge cookie for the message.
     // XX really should use a proper HMAC here.
@@ -182,8 +178,9 @@ registration_server::reply_insert1(const comm::endpoint &srcep, const byte_array
 }
 
 byte_array
-registration_server::calc_cookie(const comm::endpoint &srcep, const byte_array &idi,
-                                 const byte_array &nhi)
+registration_server::calc_cookie(const comm::endpoint& srcep,
+                                 const byte_array& idi,
+                                 const byte_array& nhi)
 {
     // Make sure we have a host secret to key the challenge with
     if (secret.is_empty())
@@ -207,7 +204,7 @@ registration_server::calc_cookie(const comm::endpoint &srcep, const byte_array &
 
 void
 registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
-                                const comm::endpoint &srcep)
+                                const comm::endpoint& srcep)
 {
     logger::debug() << "Insert2";
 
@@ -219,7 +216,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
         return;
     }
 
-    sss::peer_identity peerid(idi);
+    uia::peer_identity peerid(idi);
 
     // The client's INSERT1 contains the hash of its nonce;
     // the INSERT2 contains the actual nonce,
@@ -263,8 +260,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
     }
 
     // Parse the client's public key and make sure it matches its EID.
-    if (!identi.set_key(key))
-    {
+    if (!identi.set_key(key)) {
         logger::debug() << "Received bad identity from client " << srcep << " on insert2";
         chalhash.insert(make_pair(chal, byte_array()));
         return;
@@ -319,8 +315,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
 }
 
 void
-registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& rxs,
-                               const comm::endpoint &srcep)
+registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& rxs, const comm::endpoint& srcep)
 {
     // Decode the rest of the lookup request.
     byte_array idi, nhi, idr;
@@ -357,8 +352,10 @@ registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& rxs,
 }
 
 void
-registration_server::reply_lookup(registry_record *reci, uint32_t replycode,
-                                  const byte_array &idr, registry_record *recr)
+registration_server::reply_lookup(registry_record* reci,
+                                  uint32_t replycode,
+                                  const byte_array& idr,
+                                  registry_record* recr)
 {
     logger::debug() << "Reply lookup " << replycode;
 
@@ -378,7 +375,8 @@ registration_server::reply_lookup(registry_record *reci, uint32_t replycode,
 }
 
 template <typename InIt1, typename InIt2, typename OutIt>
-OutIt unordered_set_intersection(InIt1 b1, InIt1 e1, InIt2 b2, InIt2 e2, OutIt out)
+OutIt
+unordered_set_intersection(InIt1 b1, InIt1 e1, InIt2 b2, InIt2 e2, OutIt out)
 {
     while (!(b1 == e1)) {
         if (!(std::find(b2, e2, *b1) == e2)) {
@@ -392,8 +390,7 @@ OutIt unordered_set_intersection(InIt1 b1, InIt1 e1, InIt2 b2, InIt2 e2, OutIt o
 }
 
 void
-registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs,
-                               const comm::endpoint &srcep)
+registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs, const comm::endpoint& srcep)
 {
     // Decode the rest of the search request.
     byte_array idi, nhi;
@@ -417,11 +414,10 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs,
     std::vector<std::string> kwords;
     std::regex word_regex("(\\S+)");
     auto words_begin = std::sregex_iterator(search.begin(), search.end(), word_regex);
-    auto words_end = std::sregex_iterator();
+    auto words_end   = std::sregex_iterator();
     const int N = 2;
-    for (std::sregex_iterator i = words_begin; i != words_end; ++i)
-    {
-        std::smatch match = *i;
+    for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
+        std::smatch match     = *i;
         std::string match_str = match.str();
         if (match_str.size() >= N) {
             kwords.emplace_back(match_str);
@@ -433,36 +429,35 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs,
     decltype(all_records_) minset;
     string minkw;
     size_t mincount = INT_MAX;
-    for (string kw : kwords)
-    {
-        if (!contains(keyword_records_, kw))
-        {
+    for (string kw : kwords) {
+        if (!contains(keyword_records_, kw)) {
             minset.clear();
             mincount = 0;
             break;
         }
         auto set = keyword_records_[kw];
         if (set.size() < mincount) {
-            minset = set;
+            minset   = set;
             mincount = set.size();
-            minkw = kw;
+            minkw    = kw;
         }
     }
     logger::debug() << "Min keyword " << minkw << " set size " << mincount;
 
     // From there, narrow the minset further for each keyword.
-    for (std::string kw : kwords)
-    {
+    for (std::string kw : kwords) {
         if (minset.empty()) {
-            break;  // Can't get any smaller than this...
+            break; // Can't get any smaller than this...
         }
         if (kw == minkw) {
             continue; // It's the one we started with
         }
         decltype(minset) outset;
-        unordered_set_intersection(minset.begin(), minset.end(),
-            keyword_records_[kw].begin(), keyword_records_[kw].end(),
-            inserter(outset, outset.begin()));
+        unordered_set_intersection(minset.begin(),
+                                   minset.end(),
+                                   keyword_records_[kw].begin(),
+                                   keyword_records_[kw].end(),
+                                   inserter(outset, outset.begin()));
         minset = outset;
     }
     logger::debug() << "Minset size " << minset.size();
@@ -499,9 +494,7 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs,
 }
 
 void
-registration_server::do_delete(
-    byte_array_iwrap<flurry::iarchive>& rxs,
-    comm::endpoint const& srcep)
+registration_server::do_delete(byte_array_iwrap<flurry::iarchive>& rxs, comm::endpoint const& srcep)
 {
     logger::debug() << "Received delete request";
 
@@ -538,10 +531,9 @@ registration_server::do_delete(
 }
 
 registry_record*
-registration_server::find_caller(
-    comm::endpoint const& ep,
-    byte_array const& idi,
-    byte_array const& nhi)
+registration_server::find_caller(comm::endpoint const& ep,
+                                 byte_array const& idi,
+                                 byte_array const& nhi)
 {
     // @TODO: list the existing records here before lookup?
 
@@ -551,8 +543,8 @@ registration_server::find_caller(
     }
     auto reci = idhash[idi];
     if (ep != reci->ep) {
-        logger::debug() << "Received request from wrong source endpoint " << ep
-            << " expecting " << reci->ep;
+        logger::debug() << "Received request from wrong source endpoint " << ep << " expecting "
+                        << reci->ep;
         return nullptr;
     }
     if (nhi != reci->nhi) {
@@ -565,8 +557,7 @@ registration_server::find_caller(
 void
 registration_server::register_keywords(bool insert, internal::registry_record* rec)
 {
-    for (std::string kw : client_profile(rec->profile_info_).keywords())
-    {
+    for (std::string kw : client_profile(rec->profile_info_).keywords()) {
         auto& set = keyword_records_[kw];
         if (insert) {
             set.insert(rec);
@@ -582,7 +573,7 @@ registration_server::register_keywords(bool insert, internal::registry_record* r
 void
 registration_server::timeout_record(internal::registry_record* rec)
 {
-    logger::debug() << "Timed out record for " << peer_id(rec->id) << " at " << rec->ep;
+    logger::debug() << "Timed out record for " << uia::peer_identity(rec->id) << " at " << rec->ep;
     register_keywords(false, rec);
     idhash.erase(rec->id);
     all_records_.erase(rec);
@@ -596,9 +587,9 @@ registration_server::timeout_record(internal::registry_record* rec)
 // Main application entrypoint
 //
 int
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-    std::shared_ptr<sss::host> host(make_shared<sss::host>()); // to create timer engines...
+    std::shared_ptr<sss::host> host(host::create()); // to create timer engines...
     uia::routing::registration_server regserver(host);
     regserver.run();
 }

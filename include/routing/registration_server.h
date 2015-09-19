@@ -11,6 +11,7 @@
 #include <memory>
 #include "sss/server.h"
 #include "sss/host.h"
+#include "sss/channels/peer_identity.h"
 
 namespace uia {
 namespace routing {
@@ -35,8 +36,8 @@ class registration_server
     std::unordered_map<byte_array, internal::registry_record*> idhash;
 
     // Hash table to look up records by case-insensitive keyword
-    std::unordered_map<std::string,
-        std::unordered_set<internal::registry_record*>> keyword_records_;
+    std::unordered_map<std::string, std::unordered_set<internal::registry_record*>>
+        keyword_records_;
 
     // Set of all existing records, for empty searches
     std::unordered_set<internal::registry_record*> all_records_;
@@ -58,14 +59,17 @@ private:
     void do_search(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
     void do_delete(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
 
-    void reply_insert1(std::shared_ptr<sss::stream> stream, const byte_array &idi, const byte_array &nhi);
-    void reply_lookup(internal::registry_record *reci, uint32_t replycode,
-        const byte_array &idr, internal::registry_record *recr);
-    byte_array calc_cookie(const sss::peer_id &eid, const byte_array &idi,
-        const byte_array &nhi);
-    internal::registry_record* find_caller(const comm::endpoint &ep,
-        const byte_array &idi, const byte_array &nhi);
+    void reply_insert1(std::shared_ptr<sss::stream> stream,
+                       const byte_array& idi,
+                       const byte_array& nhi);
+    void reply_lookup(internal::registry_record* reci,
+                      uint32_t replycode,
+                      const byte_array& idr,
+                      internal::registry_record* recr);
+    byte_array
+    calc_cookie(const uia::peer_identity& eid, const byte_array& idi, const byte_array& nhi);
+    internal::registry_record*
+    find_caller(const comm::endpoint& ep, const byte_array& idi, const byte_array& nhi);
 };
-
 }
 }

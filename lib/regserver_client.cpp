@@ -16,12 +16,12 @@ namespace internal {
  */
 const boost::posix_time::time_duration regserver_client::max_rereg = bp::minutes(15);
 
-regserver_client::regserver_client(sss::host *h)
+regserver_client::regserver_client(sss::host* h)
     : client()
     , host_(h)
     , state_(state::idle)
     , resolver_(h->get_io_service())
-    , idi(h->host_identity().id().id())
+    , idi(h->host_identity().id())
     , retry_timer_(h)
     , rereg_timer_(h)
 {
@@ -43,13 +43,15 @@ regserver_client::~regserver_client()
     host_->coordinator->clear_nonce(nhi);
 }
 
-void regserver_client::fail(const std::string &err)
+void
+regserver_client::fail(const std::string& err)
 {
     error_string_ = err;
     disconnect();
 }
 
-void regserver_client::disconnect()
+void
+regserver_client::disconnect()
 {
     if (state_ == state::idle)
         return;
@@ -59,12 +61,12 @@ void regserver_client::disconnect()
 
     // Fail all outstanding lookup and search requests
     // XX provide a better error indication?
-    for (const sss::peer_identity &id : lookups)
+    for (const uia::peer_identity& id : lookups)
         on_lookup_done(id, uia::comm::endpoint(), client_profile());
-    for (const sss::peer_identity &id : punches)
+    for (const uia::peer_identity& id : punches)
         on_lookup_done(id, uia::comm::endpoint(), client_profile());
-    for (const std::string &text : searches)
-        on_search_done(text, std::vector<sss::peer_identity>(), true);
+    for (const std::string& text : searches)
+        on_search_done(text, std::vector<uia::peer_identity>(), true);
 
     state_ = state::idle;
     addrs.clear();
@@ -83,7 +85,8 @@ void regserver_client::disconnect()
     on_disconnected();
 }
 
-void regserver_client::register_at(const std::string &srvname, uint16_t srvport)
+void
+regserver_client::register_at(const std::string& srvname, uint16_t srvport)
 {
     assert(state_ == state::idle);
     logger::debug() << "Register at " << srvname << ":" << srvport;
@@ -93,7 +96,8 @@ void regserver_client::register_at(const std::string &srvname, uint16_t srvport)
     reregister();
 }
 
-void regserver_client::reregister()
+void
+regserver_client::reregister()
 {
     assert(!srvname.empty());
     assert(srvport != 0);
@@ -114,11 +118,11 @@ void regserver_client::reregister()
         logger::debug() << "Looking up rendezvous server address.";
         state_ = state::resolve;
         boost::asio::ip::udp::resolver::query query1(srvname, "");
-        resolver_.async_resolve(query1, [this](const boost::system::error_code& ec,
-                                               boost::asio::ip::udp::resolver::iterator ep_it)
-        {
-            got_resolve_results(ec, ep_it);
-        });
+        resolver_.async_resolve(query1,
+                                [this](const boost::system::error_code& ec,
+                                       boost::asio::ip::udp::resolver::iterator ep_it) {
+                                    got_resolve_results(ec, ep_it);
+                                });
         return;
     }
 
@@ -132,11 +136,10 @@ void regserver_client::reregister()
 
 void
 regserver_client::got_resolve_results(const boost::system::error_code& ec,
-    boost::asio::ip::udp::resolver::iterator ep_it)
+                                      boost::asio::ip::udp::resolver::iterator ep_it)
 {
     if (!ec) {
-        for (boost::asio::ip::udp::resolver::iterator end; ep_it != end; ++ep_it)
-        {
+        for (boost::asio::ip::udp::resolver::iterator end; ep_it != end; ++ep_it) {
             // possible lookup key - ep_it->host_name()
             addrs.emplace_back(comm::endpoint(ep_it->endpoint().address(), srvport));
         }
@@ -149,7 +152,8 @@ regserver_client::got_resolve_results(const boost::system::error_code& ec,
     go_insert1();
 }
 
-void regserver_client::go_insert1()
+void
+regserver_client::go_insert1()
 {
     // Create our random nonce and its hash, if not done already,
     // and register this client to receive replies keyed on this nonce.
@@ -168,7 +172,8 @@ void regserver_client::go_insert1()
     retry_timer_.start();
 }
 
-void regserver_client::send_insert1()
+void
+regserver_client::send_insert1()
 {
     logger::debug() << "Insert1";
 
@@ -184,7 +189,8 @@ void regserver_client::send_insert1()
     send(msg);
 }
 
-void regserver_client::got_insert1_reply(byte_array_iwrap<flurry::iarchive>& is)
+void
+regserver_client::got_insert1_reply(byte_array_iwrap<flurry::iarchive>& is)
 {
     logger::debug() << "Insert1 reply";
 
@@ -203,7 +209,8 @@ void regserver_client::got_insert1_reply(byte_array_iwrap<flurry::iarchive>& is)
 /**
  * Serialize client profile into a byte_array type.
  */
-byte_array info_blob(client_profile const& profile)
+byte_array
+info_blob(client_profile const& profile)
 {
     byte_array result;
     byte_array_owrap<flurry::oarchive> write(result);
@@ -211,13 +218,14 @@ byte_array info_blob(client_profile const& profile)
     return result;
 }
 
-void regserver_client::go_insert2()
+void
+regserver_client::go_insert2()
 {
     logger::debug() << "Insert2";
 
     // Find our serialized public key to send to the server.
-    sss::peer_identity identi = host_->host_identity();
-    key = identi.public_key();
+    uia::peer_identity identi = host_->host_identity();
+    key                       = identi.public_key();
 
     // Compute the hash of the message components to be signed.
     byte_array pack;
@@ -235,7 +243,8 @@ void regserver_client::go_insert2()
     retry_timer_.start();
 }
 
-void regserver_client::send_insert2()
+void
+regserver_client::send_insert2()
 {
     logger::debug() << "Insert2 reply";
 
@@ -252,7 +261,8 @@ void regserver_client::send_insert2()
     send(msg);
 }
 
-void regserver_client::got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is)
+void
+regserver_client::got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is)
 {
     // Decode the rest of the reply
     int32_t life_secs;
@@ -277,21 +287,22 @@ void regserver_client::got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is)
     on_ready();
 }
 
-void regserver_client::lookup(const sss::peer_identity& idtarget, bool notify)
+void
+regserver_client::lookup(const uia::peer_identity& idtarget, bool notify)
 {
     assert(is_registered());
 
     if (notify) {
         punches.insert(idtarget);
-    }
-    else {
+    } else {
         lookups.insert(idtarget);
     }
     send_lookup(idtarget, notify);
     retry_timer_.start();
 }
 
-void regserver_client::send_lookup(const sss::peer_identity& idtarget, bool notify)
+void
+regserver_client::send_lookup(const uia::peer_identity& idtarget, bool notify)
 {
     logger::debug() << "Send lookup for ID " << idtarget;
 
@@ -307,7 +318,8 @@ void regserver_client::send_lookup(const sss::peer_identity& idtarget, bool noti
     send(msg);
 }
 
-void regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool isnotify)
+void
+regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool isnotify)
 {
     logger::debug() << "got_lookup_reply " << (isnotify ? "NOTIFY" : "RESPONSE");
 
@@ -335,13 +347,14 @@ void regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, 
         logger::debug() << "Useless lookup result";
         return;
     }
-    logger::debug() << "Processed lookup for " << sss::peer_identity(targetid);
+    logger::debug() << "Processed lookup for " << uia::peer_identity(targetid);
     lookups.erase(targetid);
     punches.erase(targetid);
     on_lookup_done(targetid, targetloc, reginfo);
 }
 
-void regserver_client::search(const std::string &text)
+void
+regserver_client::search(const std::string& text)
 {
     assert(is_registered());
 
@@ -350,7 +363,8 @@ void regserver_client::search(const std::string &text)
     retry_timer_.start();
 }
 
-void regserver_client::send_search(const std::string &text)
+void
+regserver_client::send_search(const std::string& text)
 {
     // Prepare the Lookup message
     byte_array msg;
@@ -364,7 +378,8 @@ void regserver_client::send_search(const std::string &text)
     send(msg);
 }
 
-void regserver_client::got_search_reply(byte_array_iwrap<flurry::iarchive>& is)
+void
+regserver_client::got_search_reply(byte_array_iwrap<flurry::iarchive>& is)
 {
     // Decode the first part of the reply
     std::string text;
@@ -384,9 +399,9 @@ void regserver_client::got_search_reply(byte_array_iwrap<flurry::iarchive>& is)
 
     // Decode the list of result IDs
     // @todo Change this into a single flurry read
-    vector<sss::peer_identity> ids;
+    vector<uia::peer_identity> ids;
     for (int i = 0; i < nresults; i++) {
-        sss::peer_identity id;
+        uia::peer_identity id;
         is.archive() >> id;
         // if (rs.status() != rs.Ok) {
         //     logger::debug() << this << "got invalid Search result ID";
@@ -399,7 +414,8 @@ void regserver_client::got_search_reply(byte_array_iwrap<flurry::iarchive>& is)
     on_search_done(text, ids, complete);
 }
 
-void regserver_client::send_delete()
+void
+regserver_client::send_delete()
 {
     logger::debug() << "Send delete notice";
 
@@ -415,13 +431,15 @@ void regserver_client::send_delete()
     send(msg);
 }
 
-void regserver_client::got_delete_reply(byte_array_iwrap<flurry::iarchive>& is)
+void
+regserver_client::got_delete_reply(byte_array_iwrap<flurry::iarchive>& is)
 {
     // Ignore.
     logger::debug() << "Got delete reply, ignored";
 }
 
-void regserver_client::send(const byte_array &msg)
+void
+regserver_client::send(const byte_array& msg)
 {
     logger::file_dump(msg, "sending packet to regserver");
 
@@ -432,22 +450,20 @@ void regserver_client::send(const byte_array &msg)
     if (socks.empty()) {
         logger::warning() << "No active network sockets available";
     }
-    for (auto sock : socks)
-    {
-        for (auto addr : addrs)
-        {
+    for (auto sock : socks) {
+        for (auto addr : addrs) {
             addr.port(srvport); // ?? @fixme
-            sock->send(addr, msg);
+            sock.lock()->send(addr, msg);
         }
     }
 }
 
-void regserver_client::timeout(bool failed)
+void
+regserver_client::timeout(bool failed)
 {
     switch (state_) {
         case state::idle:
-        case state::resolve:
-            break;
+        case state::resolve: break;
         case state::insert1:
         case state::insert2:
             if (failed and !persist) {
@@ -455,8 +471,7 @@ void regserver_client::timeout(bool failed)
             } else {
                 if (state_ == state::insert1) {
                     send_insert1();
-                }
-                else {
+                } else {
                     send_insert2();
                 }
                 retry_timer_.restart();
@@ -475,13 +490,13 @@ void regserver_client::timeout(bool failed)
                     reregister();
             } else {
                 // Re-send all outstanding requests
-                for (const sss::peer_identity &id : lookups) {
+                for (const uia::peer_identity& id : lookups) {
                     send_lookup(id, false);
                 }
-                for (const sss::peer_identity &id : punches) {
+                for (const uia::peer_identity& id : punches) {
                     send_lookup(id, true);
                 }
-                for (const std::string &text : searches) {
+                for (const std::string& text : searches) {
                     send_search(text);
                 }
                 retry_timer_.restart();
@@ -490,7 +505,8 @@ void regserver_client::timeout(bool failed)
     }
 }
 
-void regserver_client::rereg_timeout()
+void
+regserver_client::rereg_timeout()
 {
     // Time to re-register!
     reregister();

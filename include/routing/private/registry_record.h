@@ -9,9 +9,9 @@
 #pragma once
 
 #include "arsenal/byte_array.h"
-#include "sss/host.h"//@todo Remove this when comm/socket is decoupled from sss
+#include "sss/host.h" //@todo Remove this when comm/socket is decoupled from sss
 #include "comm/socket.h"
-#include "sss/timer.h" // @todo move sss::async to async
+#include "sss/internal/timer.h" // @todo move sss::async to async
 
 namespace uia {
 namespace routing {
@@ -27,7 +27,7 @@ namespace internal {
 class registry_record
 {
     friend class uia::routing::registration_server;
-    static constexpr uint32_t timeout_seconds = (1*60*60);   // Records last 1 hour
+    static constexpr uint32_t timeout_seconds = (1 * 60 * 60); // Records last 1 hour
 
     registration_server& srv;
     byte_array const id;
@@ -36,8 +36,11 @@ class registry_record
     byte_array const profile_info_;
     sss::async::timer timer_;
 
-    registry_record(registration_server& srv, byte_array const& id, byte_array const& nhi,
-        uia::comm::endpoint const& ep, byte_array const& info); // ep based for old regserver
+    registry_record(registration_server& srv,
+                    byte_array const& id,
+                    byte_array const& nhi,
+                    uia::comm::endpoint const& ep,
+                    byte_array const& info); // ep based for old regserver
     // @todo Add stream-based ctor for new regserver
     ~registry_record();
 };

@@ -9,7 +9,7 @@
 #include "arsenal/logging.h"
 #include "routing/private/registry_record.h"
 #include "routing/registration_server.h"
-#include "sss/peer_id.h"
+#include "sss/channels/peer_identity.h"
 
 namespace uia {
 namespace routing {
@@ -22,8 +22,10 @@ constexpr uint32_t registry_record::timeout_seconds;
 //=================================================================================================
 
 registry_record::registry_record(registration_server& srv,
-        const byte_array &id, const byte_array &nhi,
-        const uia::comm::endpoint &ep, const byte_array &info)
+                                 const byte_array& id,
+                                 const byte_array& nhi,
+                                 const uia::comm::endpoint& ep,
+                                 const byte_array& info)
     : srv(srv)
     , id(id)
     , nhi(nhi)
@@ -31,16 +33,16 @@ registry_record::registry_record(registration_server& srv,
     , profile_info_(info)
     , timer_(srv.host_.get())
 {
-    logger::debug() << "Registering record for " << sss::peer_identity(id) << " at " << ep;
+    logger::debug() << "Registering record for " << uia::peer_identity(id) << " at " << ep;
 
     // Set the record's timeout
-    timer_.on_timeout.connect([this, &srv](bool){ srv.timeout_record(this); });
+    timer_.on_timeout.connect([this, &srv](bool) { srv.timeout_record(this); });
     timer_.start(boost::posix_time::seconds(timeout_seconds));
 }
 
 registry_record::~registry_record()
 {
-    logger::debug() << "~registry_record: deleting record for " << sss::peer_identity(id);
+    logger::debug() << "~registry_record: deleting record for " << uia::peer_identity(id);
 }
 
 } // internal namespace

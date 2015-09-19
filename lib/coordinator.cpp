@@ -11,10 +11,10 @@
 #include "arsenal/logging.h"
 #include "arsenal/algorithm.h"
 #include "arsenal/make_unique.h"
-#include "comm/socket_receiver.h"
+#include "comm/packet_receiver.h"
 #include "routing/coordinator.h"
 #include "routing/private/regserver_client.h" // @fixme This is tied to regserver now.
-#include "sss/peer_identity.h"
+#include "sss/channels/peer_identity.h"
 
 using namespace std;
 using namespace uia::routing::internal;
@@ -28,7 +28,7 @@ namespace routing {
 
 // Private helper class for routing_client_coordinator -
 // attaches to our link and dispatches control messages to different clients.
-class routing_receiver : public comm::socket_receiver
+class routing_receiver : public comm::packet_receiver
 {
     // Global hash table of active routing_client instances,
     // for dispatching incoming messages based on hashed nonce.
@@ -38,28 +38,28 @@ class routing_receiver : public comm::socket_receiver
     unordered_map<byte_array, client*> hashed_nonce_clients_;
 
 private:
-    void receive(byte_array const& msg, comm::socket_endpoint const& src) override;
+    void receive(boost::asio::const_buffer msg, uia::comm::socket_endpoint const& src) override;
 
 public:
     routing_receiver(shared_ptr<sss::host> host);
 
-    inline void insert_nonce(byte_array const& nonce, client* c) {
+    inline void insert_nonce(byte_array const& nonce, client* c)
+    {
         hashed_nonce_clients_.insert(make_pair(nonce, c));
     }
 
     // Remove any nonce we may have registered in the nhihash.
-    inline void clear_nonce(byte_array const& nonce) {
-        hashed_nonce_clients_.erase(nonce);
-    }
+    inline void clear_nonce(byte_array const& nonce) { hashed_nonce_clients_.erase(nonce); }
 };
 
 routing_receiver::routing_receiver(shared_ptr<sss::host> host)
-    : comm::socket_receiver(host.get(), routing_magic)
+    : comm::packet_receiver(host.get())
 {
     logger::debug() << "Routing receiver created";
 }
 
-void routing_receiver::receive(byte_array const& msg, comm::socket_endpoint const& src)
+void
+routing_receiver::receive(boost::asio::const_buffer msg, uia::comm::socket_endpoint const& src)
 {
     logger::debug() << "Routing receiver: received routing packet";
     // Decode the first part of the message
@@ -70,12 +70,11 @@ void routing_receiver::receive(byte_array const& msg, comm::socket_endpoint cons
     read.archive() >> code >> nhi;
 
     // Find the appropriate client
-    if (!contains(hashed_nonce_clients_, nhi))
-    {
+    if (!contains(hashed_nonce_clients_, nhi)) {
         logger::debug() << "Received message for nonexistent client";
         return;
     }
-    regserver_client *cli = static_cast<regserver_client*>(hashed_nonce_clients_[nhi]);
+    regserver_client* cli = static_cast<regserver_client*>(hashed_nonce_clients_[nhi]);
 
     // Make sure this message comes from one of the server's addresses
     if (!contains(cli->addrs, src) or src.port() != cli->srvport) {
@@ -121,7 +120,8 @@ public:
     coordinator_impl(shared_ptr<sss::host> host)
         : host_(*host.get())
         , routing_receiver_(host)
-    {}
+    {
+    }
 };
 
 //=====================================================================================================================
@@ -131,7 +131,8 @@ public:
 client_coordinator::client_coordinator(shared_ptr<sss::host> host)
     : host_(*host.get())
     , pimpl_(stdext::make_unique<coordinator_impl>(host))
-{}
+{
+}
 
 std::vector<client*>
 client_coordinator::routing_clients() const
@@ -139,23 +140,27 @@ client_coordinator::routing_clients() const
     return set_to_vector(pimpl_->routing_clients_);
 }
 
-void client_coordinator::add_routing_client(client* c)
+void
+client_coordinator::add_routing_client(client* c)
 {
     pimpl_->routing_clients_.insert(c);
 }
 
-void client_coordinator::remove_routing_client(client* c)
+void
+client_coordinator::remove_routing_client(client* c)
 {
     pimpl_->routing_clients_.erase(c);
 }
 
-void client_coordinator::insert_nonce(byte_array const& nonce, client* c)
+void
+client_coordinator::insert_nonce(byte_array const& nonce, client* c)
 {
     add_routing_client(c);
     pimpl_->routing_receiver_.insert_nonce(nonce, c);
 }
 
-void client_coordinator::clear_nonce(byte_array const& nonce)
+void
+client_coordinator::clear_nonce(byte_array const& nonce)
 {
     pimpl_->routing_receiver_.clear_nonce(nonce);
 }

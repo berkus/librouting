@@ -13,8 +13,8 @@
 #include <boost/signals2/signal.hpp>
 #include "routing/client_profile.h"
 #include "routing/routing_client.h"
-#include "sss/timer.h"
-#include "sss/peer_identity.h"
+#include "sss/internal/timer.h"
+#include "sss/channels/peer_identity.h"
 
 namespace uia {
 namespace routing {
@@ -25,15 +25,15 @@ namespace internal {
 
 constexpr uint16_t REGSERVER_DEFAULT_PORT = 9669;
 
-constexpr uint32_t REG_REQUEST    = 0x100;   // Client-to-server request
-constexpr uint32_t REG_RESPONSE   = 0x200;   // Server-to-client response
-constexpr uint32_t REG_NOTIFY     = 0x300;   // Server-to-client async callback
+constexpr uint32_t REG_REQUEST  = 0x100; // Client-to-server request
+constexpr uint32_t REG_RESPONSE = 0x200; // Server-to-client response
+constexpr uint32_t REG_NOTIFY   = 0x300; // Server-to-client async callback
 
-constexpr uint32_t REG_INSERT1    = 0x00;    // Insert entry - preliminary request
-constexpr uint32_t REG_INSERT2    = 0x01;    // Insert entry - authenticated request
-constexpr uint32_t REG_LOOKUP     = 0x02;    // Lookup host by ID, optionally notify
-constexpr uint32_t REG_SEARCH     = 0x03;    // Search entry by keyword
-constexpr uint32_t REG_DELETE     = 0x04;    // Remove registration record, sent by client upon exit
+constexpr uint32_t REG_INSERT1 = 0x00; // Insert entry - preliminary request
+constexpr uint32_t REG_INSERT2 = 0x01; // Insert entry - authenticated request
+constexpr uint32_t REG_LOOKUP  = 0x02; // Lookup host by ID, optionally notify
+constexpr uint32_t REG_SEARCH  = 0x03; // Search entry by keyword
+constexpr uint32_t REG_DELETE  = 0x04; // Remove registration record, sent by client upon exit
 
 /**
  * Implementation class talking to registration/rendezvous server.
@@ -42,7 +42,8 @@ constexpr uint32_t REG_DELETE     = 0x04;    // Remove registration record, sent
 class regserver_client : public client
 {
 public:
-    enum class state : int {
+    enum class state : int
+    {
         idle = 0,   // Unregistered and not doing anything
         resolve,    // Resolving rendezvous server's host name
         insert1,    // Sent Insert1 request, waiting response
@@ -54,47 +55,48 @@ private:
     // Max time before rereg - 1 hr
     static const boost::posix_time::time_duration max_rereg;
 
-    sss::host* const host_;      // Pointer to our per-host state
+    sss::host* const host_; // Pointer to our per-host state
 
     state state_;
     // DNS resolution info
-    std::string srvname;    // DNS hostname or IP address of server
+    std::string srvname; // DNS hostname or IP address of server
     uint16_t srvport;    // Port number of registration server
     boost::asio::ip::udp::resolver resolver_;
     // int lookupid;       // QHostInfo lookupId for DNS resolution
-    std::vector<uia::comm::endpoint> addrs; friend class uia::routing::routing_receiver; // Server addresses from resolution
-    client_profile inf;        // Registration metadata
+    std::vector<uia::comm::endpoint> addrs;
+    friend class uia::routing::routing_receiver; // Server addresses from resolution
+    client_profile inf;                          // Registration metadata
 
     // Registration process state
-    byte_array idi;     // Initiator's identity (i.e., mine)
-    byte_array ni;      // Initiator's nonce
-    byte_array nhi;     // Initiator's hashed nonce
-    byte_array chal;    // Responder's challenge from Insert1 reply
-    byte_array key;     // Our encoded public key to send to server
-    byte_array sig;     // Our signature to send in Insert2
+    byte_array idi;  // Initiator's identity (i.e., mine)
+    byte_array ni;   // Initiator's nonce
+    byte_array nhi;  // Initiator's hashed nonce
+    byte_array chal; // Responder's challenge from Insert1 reply
+    byte_array key;  // Our encoded public key to send to server
+    byte_array sig;  // Our signature to send in Insert2
 
     // Outstanding lookups and searches for which we're awaiting replies.
-    std::unordered_set<sss::peer_identity> lookups;  // IDs we're doing lookups on
-    std::unordered_set<sss::peer_identity> punches;  // Lookups with notify requests
-    std::unordered_set<std::string> searches;  // Strings we're searching for
+    std::unordered_set<uia::peer_identity> lookups; // IDs we're doing lookups on
+    std::unordered_set<uia::peer_identity> punches; // Lookups with notify requests
+    std::unordered_set<std::string> searches;       // Strings we're searching for
 
     // Retry state
-    sss::async::timer retry_timer_;   // Retransmission timer
-    bool persist;       // True if we should never give up
+    sss::async::timer retry_timer_; // Retransmission timer
+    bool persist;                   // True if we should never give up
 
-    sss::async::timer rereg_timer_;   // Counts lifetime of our reg entry
+    sss::async::timer rereg_timer_; // Counts lifetime of our reg entry
 
     // Error state
     std::string error_string_;
 
     // As the result of an error, disconnect and notify the client.
-    void fail(const std::string &error);
+    void fail(const std::string& error);
 
 public:
-    regserver_client(sss::host *h);
+    regserver_client(sss::host* h);
     ~regserver_client();
 
-    /*shared_ptr<*/sss::host* get_host() override { return host_; }
+    /*shared_ptr<*/ sss::host* get_host() override { return host_; }
 
     // Set the metadata to attach to our registration
     inline client_profile profile() const { return inf; }
@@ -102,7 +104,7 @@ public:
 
     // Attempt to register with the specified registration server.
     // We'll send a stateChanged() signal when it succeeds or fails.
-    void register_at(const std::string &srvhost, uint16_t port = REGSERVER_DEFAULT_PORT);
+    void register_at(const std::string& srvhost, uint16_t port = REGSERVER_DEFAULT_PORT);
 
     // Attempt to re-register with the same server previously indicated.
     void reregister();
@@ -113,7 +115,7 @@ public:
     inline uint16_t server_port() const { return srvport; }
 
     inline std::string error_string() const { return error_string_; }
-    inline void set_error_string(const std::string &err) { error_string_ = err; }
+    inline void set_error_string(const std::string& err) { error_string_ = err; }
 
     inline bool is_idle() const { return state_ == state::idle; }
     inline bool is_registered() const { return state_ == state::registered; }
@@ -132,7 +134,7 @@ public:
 
     static std::string state_string(int state);
 
-    void lookup(sss::peer_identity const& id, bool notify = false) override;
+    void lookup(uia::peer_identity const& id, bool notify = false) override;
     void search(std::string const& text) override;
 
 private:
@@ -145,25 +147,25 @@ private:
     void send_insert2();
     void got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is);
 
-    void send_lookup(const sss::peer_identity& id, bool notify);
+    void send_lookup(const uia::peer_identity& id, bool notify);
     void got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool isnotify);
 
-    void send_search(const std::string &text);
+    void send_search(const std::string& text);
     void got_search_reply(byte_array_iwrap<flurry::iarchive>& is);
 
     void send_delete();
     void got_delete_reply(byte_array_iwrap<flurry::iarchive>& is);
 
-    void send(const byte_array &msg);
+    void send(const byte_array& msg);
 
 private:
     //==============
     // Handlers
     //==============
     void got_resolve_results(const boost::system::error_code& ec,
-                             boost::asio::ip::udp::resolver::iterator ep_it);  // DNS lookup done
-    void timeout(bool fail);        // Retry timer timeout
-    void rereg_timeout();            // Reregister timeout
+                             boost::asio::ip::udp::resolver::iterator ep_it); // DNS lookup done
+    void timeout(bool fail);                                                  // Retry timer timeout
+    void rereg_timeout();                                                     // Reregister timeout
 };
 
 } // internal namespace
