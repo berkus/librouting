@@ -1,7 +1,6 @@
 #include "routing/private/regserver_client.h"
 #include "sss/host.h"
 #include "comm/socket.h"
-#include "krypto/sha256_hash.h"
 
 namespace bp = boost::posix_time;
 using namespace std;
@@ -158,13 +157,13 @@ regserver_client::go_insert1()
     // Create our random nonce and its hash, if not done already,
     // and register this client to receive replies keyed on this nonce.
     if (ni.is_empty()) {
-        ni.resize(crypto::SHA256_HASH_LEN);
+        // ni.resize(crypto::SHA256_HASH_LEN);
         // crypto::fill_random(ni.as_vector());
         // nhi = crypto::sha256::hash(ni);
         host_->coordinator->insert_nonce(nhi, this);
     }
-    assert(ni.size() == crypto::SHA256_HASH_LEN);
-    assert(nhi.size() == crypto::SHA256_HASH_LEN);
+    //assert(ni.size() == crypto::SHA256_HASH_LEN);
+    //assert(nhi.size() == crypto::SHA256_HASH_LEN);
 
     // Enter Insert1 state and start sending
     state_ = state::insert1;
