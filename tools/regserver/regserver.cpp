@@ -18,6 +18,7 @@
 using namespace uia::routing::internal;
 using namespace std;
 using namespace sss;
+namespace asio = boost::asio;
 
 constexpr int MAX_RESULTS = 100; // Maximum number of search results
 
@@ -33,18 +34,18 @@ registration_server::registration_server(std::shared_ptr<sss::host> host)
     , sock(io_service_)
     , sock6(io_service_)
 {
-    boost::asio::ip::udp::endpoint ep(boost::asio::ip::address_v4::any(), REGSERVER_DEFAULT_PORT);
-    boost::asio::ip::udp::endpoint ep6(boost::asio::ip::address_v6::any(), REGSERVER_DEFAULT_PORT);
+    asio::ip::udp::endpoint ep(asio::ip::address_v4::any(), REGSERVER_DEFAULT_PORT);
+    asio::ip::udp::endpoint ep6(asio::ip::address_v6::any(), REGSERVER_DEFAULT_PORT);
 
     logger::debug() << "Regserver bind on local endpoint " << ep;
-    if (!bind_socket(sock, ep, error_string_))
+    if (!comm::bind_socket(sock, ep, error_string_))
         return;
     // once bound, can start receiving datagrams.
     prepare_async_receive(sock);
     logger::debug() << "Bound socket on " << ep;
 
     logger::debug() << "Regserver bind on local endpoint " << ep6;
-    if (!bind_socket(sock6, ep6, error_string_))
+    if (!comm::bind_socket(sock6, ep6, error_string_))
         return;
     // once bound, can start receiving datagrams.
     error_string_ = "";
@@ -53,15 +54,15 @@ registration_server::registration_server(std::shared_ptr<sss::host> host)
 }
 
 void
-registration_server::prepare_async_receive(boost::asio::ip::udp::socket& s)
+registration_server::prepare_async_receive(asio::ip::udp::socket& s)
 {
-    boost::asio::streambuf::mutable_buffers_type buffer = received_buffer.prepare(2048);
-    s.async_receive_from(boost::asio::buffer(buffer),
+    asio::streambuf::mutable_buffers_type buffer = received_buffer.prepare(2048);
+    s.async_receive_from(asio::buffer(buffer),
                          received_from,
                          boost::bind(&registration_server::udp_ready_read,
                                      this,
-                                     boost::asio::placeholders::error,
-                                     boost::asio::placeholders::bytes_transferred));
+                                     asio::placeholders::error,
+                                     asio::placeholders::bytes_transferred));
 }
 
 void
@@ -70,7 +71,7 @@ registration_server::udp_ready_read(const boost::system::error_code& error,
 {
     if (!error) {
         logger::debug() << "Received " << dec << bytes_transferred << " bytes via UDP link";
-        byte_array b(boost::asio::buffer_cast<const char*>(received_buffer.data()),
+        byte_array b(asio::buffer_cast<const char*>(received_buffer.data()),
                      bytes_transferred);
         udp_dispatch(b, received_from);
         received_buffer.consume(bytes_transferred);
@@ -89,7 +90,7 @@ bool
 registration_server::send(const comm::endpoint& ep, byte_array const& msg)
 {
     boost::system::error_code ec;
-    size_t sent = sock.send_to(boost::asio::buffer(msg.data(), msg.size()), ep, 0, ec);
+    size_t sent = sock.send_to(asio::buffer(msg.data(), msg.size()), ep, 0, ec);
     if (ec or sent < msg.size()) {
         error_string_ = ec.message();
     }
