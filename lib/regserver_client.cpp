@@ -1,6 +1,5 @@
 #include "routing/private/regserver_client.h"
-#include "sss/host.h"
-#include "comm/socket.h"
+#include "uia/comm/socket.h"
 
 namespace bp = boost::posix_time;
 using namespace std;

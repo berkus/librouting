@@ -7,9 +7,9 @@
 // (See file LICENSE_1_0.txt or a copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 #include "arsenal/logging.h"
+#include "uia/peer_identity.h"
 #include "routing/private/registry_record.h"
 #include "routing/registration_server.h"
-#include "sss/channels/peer_identity.h"
 
 namespace uia {
 namespace routing {

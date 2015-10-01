@@ -9,9 +9,9 @@
 #pragma once
 
 #include <memory>
+#include "uia/peer_identity.h"
 #include "sss/server.h"
 #include "sss/host.h"
-#include "sss/channels/peer_identity.h"
 
 namespace uia {
 namespace routing {

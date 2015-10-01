@@ -8,10 +8,10 @@
 //
 #include <regex>
 #include "arsenal/logging.h"
-#include "comm/socket.h"
-#include "comm/udp_socket.h"
+#include "uia/peer_identity.h"
+#include "uia/comm/socket.h"
+#include "uia/comm/udp_socket.h"
 #include "routing/private/regserver_client.h" // For some shared constants
-#include "sss/channels/peer_identity.h"
 #include "sss/host.h"
 #include "regserver.h"
 

@@ -11,10 +11,10 @@
 #include <set>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/signals2/signal.hpp>
+#include "uia/peer_identity.h"
 #include "routing/client_profile.h"
 #include "routing/routing_client.h"
 #include "sss/internal/timer.h"
-#include "sss/channels/peer_identity.h"
 
 namespace uia {
 namespace routing {

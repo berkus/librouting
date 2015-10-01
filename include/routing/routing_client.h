@@ -9,7 +9,7 @@
 #pragma once
 
 #include <boost/signals2/signal.hpp>
-#include "sss/channels/peer_identity.h"
+#include "uia/peer_identity.h"
 #include "sss/host.h"
 
 namespace uia {

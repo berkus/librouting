@@ -9,8 +9,7 @@
 #pragma once
 
 #include "arsenal/byte_array.h"
-#include "sss/host.h" //@todo Remove this when comm/socket is decoupled from sss
-#include "comm/socket.h"
+#include "uia/comm/socket_endpoint.h"
 #include "sss/internal/timer.h" // @todo move sss::async to async
 
 namespace uia {
