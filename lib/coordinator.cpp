@@ -12,7 +12,7 @@
 #include "arsenal/algorithm.h"
 #include "arsenal/make_unique.h"
 #include "uia/peer_identity.h"
-#include "comm/packet_receiver.h"
+#include "uia/comm/packet_receiver.h"
 #include "routing/coordinator.h"
 #include "routing/private/regserver_client.h" // @fixme This is tied to regserver now.
 
