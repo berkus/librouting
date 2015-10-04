@@ -33,7 +33,7 @@ registry_record::registry_record(registration_server& srv,
     , profile_info_(info)
     , timer_(srv.host_.get())
 {
-    logger::debug() << "Registering record for " << uia::peer_identity(id) << " at " << ep;
+    logger::debug() << "Registering record for " << uia::peer_identity(id.as_string()) << " at " << ep;
 
     // Set the record's timeout
     timer_.on_timeout.connect([this, &srv](bool) { srv.timeout_record(this); });
@@ -42,7 +42,7 @@ registry_record::registry_record(registration_server& srv,
 
 registry_record::~registry_record()
 {
-    logger::debug() << "~registry_record: deleting record for " << uia::peer_identity(id);
+    logger::debug() << "~registry_record: deleting record for " << uia::peer_identity(id.as_string());
 }
 
 } // internal namespace

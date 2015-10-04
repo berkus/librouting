@@ -336,20 +336,22 @@ regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool 
     // }
     client_profile reginfo(targetinfo);
 
+    auto target_id = targetid.as_string();
+
     // If it's an async lookup notification from the server,
     // just forward it to anyone listening on our on_lookup_notify signal.
     if (isnotify)
-        return on_lookup_notify(targetid, targetloc, reginfo);
+        return on_lookup_notify(target_id, targetloc, reginfo);
 
     // Otherwise, it should be a response to a lookup request.
-    if (!(contains(lookups, targetid) || contains(punches, targetid))) {
+    if (!(contains(lookups, target_id)) || contains(punches, target_id)) {
         logger::debug() << "Useless lookup result";
         return;
     }
-    logger::debug() << "Processed lookup for " << uia::peer_identity(targetid);
-    lookups.erase(targetid);
-    punches.erase(targetid);
-    on_lookup_done(targetid, targetloc, reginfo);
+    logger::debug() << "Processed lookup for " << uia::peer_identity(target_id);
+    lookups.erase(target_id);
+    punches.erase(target_id);
+    on_lookup_done(target_id, targetloc, reginfo);
 }
 
 void

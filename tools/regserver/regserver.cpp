@@ -210,7 +210,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
         return;
     }
 
-    uia::peer_identity peerid(idi);
+    uia::peer_identity peerid(idi.as_string());
 
     // The client's INSERT1 contains the hash of its nonce;
     // the INSERT2 contains the actual nonce,
@@ -245,7 +245,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
     // For now we only support RSA-based identities,
     // because DSA signature verification is much more costly.
     // XX would probably be good to send back an error response.
-    uia::peer_identity identi(idi);
+    uia::peer_identity identi(idi.as_string());
     // if (identi.key_scheme() != sss::peer_identity::scheme::rsa160) {
     //     logger::debug() << "Received Insert for unsupported ID scheme " << identi.scheme_name();
     //     chalhash.insert(make_pair(chal, byte_array()));
@@ -253,7 +253,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
     // }
 
     // Parse the client's public key and make sure it matches its EID.
-    if (!identi.set_key(key)) {
+    if (!identi.set_key(key.as_string())) {
         logger::debug() << "Received bad identity from client " << srcep << " on insert2";
         chalhash.insert(make_pair(chal, byte_array()));
         return;
@@ -565,7 +565,7 @@ registration_server::register_keywords(bool insert, internal::registry_record* r
 void
 registration_server::timeout_record(internal::registry_record* rec)
 {
-    logger::debug() << "Timed out record for " << uia::peer_identity(rec->id) << " at " << rec->ep;
+    logger::debug() << "Timed out record for " << uia::peer_identity(rec->id.as_string()) << " at " << rec->ep;
     register_keywords(false, rec);
     idhash.erase(rec->id);
     all_records_.erase(rec);
