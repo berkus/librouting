@@ -35,7 +35,7 @@ registration_server::on_incoming_record(shared_ptr<stream> stream)
 {
     peer_id remote_id = stream->remote_host_id();
     byte_array msg = stream->read_record();
-    logger::debug() << "Received " << dec << msg.size() << " byte message from " << remote_id;
+    BOOST_LOG_TRIVIAL(debug) << "Received " << dec << msg.size() << " byte message from " << remote_id;
 
     uint32_t magic, code;
 
@@ -43,7 +43,7 @@ registration_server::on_incoming_record(shared_ptr<stream> stream)
     magic = msg.as<big_uint32_t>()[0];
 
     if (magic != REG_MAGIC) {
-        logger::debug() << "Received message from " << remote_id << " with bad magic";
+        BOOST_LOG_TRIVIAL(debug) << "Received message from " << remote_id << " with bad magic";
         return;
     }
 
@@ -64,7 +64,7 @@ registration_server::on_incoming_record(shared_ptr<stream> stream)
         case REG_REQUEST | REG_DELETE:
             return do_delete(read, stream);
         default:
-            logger::debug() << "Received message from " << remote_id << " with bad request code";
+            BOOST_LOG_TRIVIAL(debug) << "Received message from " << remote_id << " with bad request code";
     }
 }
 
@@ -72,7 +72,7 @@ void
 registration_server::do_insert1(byte_array_iwrap<flurry::iarchive>& read,
                                 shared_ptr<stream> stream)
 {
-    logger::debug() << "Insert1";
+    BOOST_LOG_TRIVIAL(debug) << "Insert1";
 
     // Decode the rest of the request message (after the 32-bit code)
     byte_array initiator_eid, initiator_hashed_nonce;
@@ -80,7 +80,7 @@ registration_server::do_insert1(byte_array_iwrap<flurry::iarchive>& read,
 
     if (initiator_eid.is_empty() || initiator_hashed_nonce.is_empty())
     {
-        logger::debug() << "Received invalid Insert1 message";
+        BOOST_LOG_TRIVIAL(debug) << "Received invalid Insert1 message";
         return;
     }
 
@@ -103,7 +103,7 @@ registration_server::reply_insert1(shared_ptr<stream> stream,
     // really should use a proper HMAC here. -- that's provided by channel layer if possible
     byte_array challenge = calc_cookie(remote_id, initiator_eid, initiator_hashed_nonce);
 
-    logger::debug() << "reply_insert1 challenge " << challenge;
+    BOOST_LOG_TRIVIAL(debug) << "reply_insert1 challenge " << challenge;
 
     byte_array resp;
     {
@@ -114,7 +114,7 @@ registration_server::reply_insert1(shared_ptr<stream> stream,
         write.archive() << (REG_RESPONSE | REG_INSERT1) << initiator_hashed_nonce << challenge;
     }
     stream->write_record(resp);
-    logger::debug() << "reply_insert1 sent to " << remote_id;
+    BOOST_LOG_TRIVIAL(debug) << "reply_insert1 sent to " << remote_id;
 }
 
 byte_array
@@ -148,14 +148,14 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& read,
 {
     peer_id remote_id = stream->remote_host_id();
 
-    logger::debug() << "Insert2";
+    BOOST_LOG_TRIVIAL(debug) << "Insert2";
 
     // Decode the rest of the request message (after the 32-bit code)
     byte_array initiator_eid, initiator_nonce, challenge, info, key, signature;
     read.archive() >> initiator_eid >> initiator_nonce >> challenge >> info >> key >> signature;
     if (initiator_eid.is_empty()) // @todo: read will throw exception on eos
     {
-        logger::debug() << "Received invalid Insert2 message";
+        BOOST_LOG_TRIVIAL(debug) << "Received invalid Insert2 message";
         return;
     }
 
@@ -172,14 +172,14 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& read,
     // just send back a new INSERT1 response.
     if (calc_cookie(stream, initiator_eid, initiator_hashed_nonce) != challenge)
     {
-        logger::debug() << "Received Insert2 message with bad cookie";
+        BOOST_LOG_TRIVIAL(debug) << "Received Insert2 message with bad cookie";
         return reply_insert1(stream, initiator_eid, initiator_hashed_nonce);
     }
 
     // See if we've already responded to a request with this cookie.
     if (contains(chalhash, challenge))
     {
-        logger::debug() << "Received apparent replay of old Insert2 request";
+        BOOST_LOG_TRIVIAL(debug) << "Received apparent replay of old Insert2 request";
 
         // Just return the previous response.
         // If the registered response is empty,
@@ -200,7 +200,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& read,
     sss::peer_identity identi(initiator_eid);
     if (identi.key_scheme() != sss::peer_identity::scheme::rsa160)
     {
-        logger::debug() << "Received Insert2 for unsupported ID scheme " << identi.scheme_name();
+        BOOST_LOG_TRIVIAL(debug) << "Received Insert2 for unsupported ID scheme " << identi.scheme_name();
         chalhash.insert(challenge, byte_array());
         return;
     }
@@ -208,7 +208,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& read,
     // Parse the client's public key and make sure it matches its EID.
     if (!identi.set_key(key))
     {
-        logger::debug() << "Received bad identity from client " << remote_id << " on Insert2";
+        BOOST_LOG_TRIVIAL(debug) << "Received bad identity from client " << remote_id << " on Insert2";
         chalhash.insert(challenge, byte_array());
         return;
     }
@@ -223,7 +223,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& read,
     // Verify the client's signature using his public key.
     if (!identi.verify(crypto::sha256::hash(sigmsg), signature))
     {
-        logger::debug() << "Signature check for client " << remote_id << " failed on Insert2";
+        BOOST_LOG_TRIVIAL(debug) << "Signature check for client " << remote_id << " failed on Insert2";
         chalhash.insert(challenge, byte_array());
         return;
     }
@@ -239,7 +239,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& read,
     registry_record* old = idhash[initiator_eid];
     if (old != nullptr)
     {
-        logger::debug() << "Replacing existing record for " << initiator_eid;
+        BOOST_LOG_TRIVIAL(debug) << "Replacing existing record for " << initiator_eid;
         timeout_record(old);
     }
     idhash[initiator_eid] = rec;
@@ -261,7 +261,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& read,
     }
     stream->write_record(resp);
 
-    logger::debug() << "Inserted record for " << peerid << " at " << remote_id;
+    BOOST_LOG_TRIVIAL(debug) << "Inserted record for " << peerid << " at " << remote_id;
 }
 
 void
@@ -274,12 +274,12 @@ registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& read,
     read.archive() >> initiator_eid >> initiator_hashed_nonce >> responder_eid >> notify;
     if (initiator_eid.is_empty())
     {
-        logger::debug() << "Received invalid Lookup message";
+        BOOST_LOG_TRIVIAL(debug) << "Received invalid Lookup message";
         return;
     }
 
     if (notify) {
-        logger::debug() << "Lookup with notify";
+        BOOST_LOG_TRIVIAL(debug) << "Lookup with notify";
     }
 
     // Look up the initiator (caller).
@@ -313,7 +313,7 @@ void
 registration_server::reply_lookup(registry_record *reci, uint32_t replycode,
                                   const byte_array &responder_eid, registry_record *recr)
 {
-    logger::debug() << "Reply lookup " << replycode;
+    BOOST_LOG_TRIVIAL(debug) << "Reply lookup " << replycode;
 
     byte_array resp;
     {
@@ -356,7 +356,7 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& read,
     read.archive() >> initiator_eid >> initiator_hashed_nonce >> search;
     if (initiator_eid.is_empty())
     {
-        logger::debug() << "Received invalid Search message";
+        BOOST_LOG_TRIVIAL(debug) << "Received invalid Search message";
         return;
     }
 
@@ -405,7 +405,7 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& read,
             minkw = kw;
         }
     }
-    logger::debug() << "Min keyword '" << minkw << "' set size " << mincount;
+    BOOST_LOG_TRIVIAL(debug) << "Min keyword '" << minkw << "' set size " << mincount;
 
     // From there, narrow the minset further for each keyword.
     for (std::string kw : kwords)
@@ -422,7 +422,7 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& read,
             inserter(outset, outset.begin()));
         minset = outset;
     }
-    logger::debug() << "Minset size " << minset.size();
+    BOOST_LOG_TRIVIAL(debug) << "Minset size " << minset.size();
 
     // If client supplied no keywords, (try to) return all records.
     auto const& results = kwords.empty() ? all_records_ : minset;
@@ -448,7 +448,7 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& read,
 
         for (auto rec : results)
         {
-            logger::debug() << "Search result " << rec->id;
+            BOOST_LOG_TRIVIAL(debug) << "Search result " << rec->id;
             write.archive() << rec->id;
             if (--nresults == 0) {
                 break;
@@ -463,14 +463,14 @@ void
 registration_server::do_delete(byte_array_iwrap<flurry::iarchive>& read,
                                shared_ptr<stream> stream)
 {
-    logger::debug() << "Received delete request";
+    BOOST_LOG_TRIVIAL(debug) << "Received delete request";
 
     // Decode the rest of the delete request.
     byte_array initiator_eid, hashed_nonce;
     read.archive() >> initiator_eid >> hashed_nonce;
     if (initiator_eid.is_empty())
     {
-        logger::debug() << "Received invalid Delete message";
+        BOOST_LOG_TRIVIAL(debug) << "Received invalid Delete message";
         return;
     }
 
@@ -507,19 +507,19 @@ registration_server::find_caller(const sss::endpoint &ep, const byte_array &init
 
     if (!contains(idhash, initiator_eid))
     {
-        logger::debug() << "Received request from non-registered caller";
+        BOOST_LOG_TRIVIAL(debug) << "Received request from non-registered caller";
         return nullptr;
     }
     auto reci = idhash[initiator_eid];
     if (ep != reci->ep)
     {
-        logger::debug() << "Received request from wrong source endpoint " << ep
+        BOOST_LOG_TRIVIAL(debug) << "Received request from wrong source endpoint " << ep
             << " expecting " << reci->ep;
         return nullptr;
     }
     if (initiator_hashed_nonce != reci->initiator_hashed_nonce)
     {
-        logger::debug() << "Received request with incorrect hashed nonce";
+        BOOST_LOG_TRIVIAL(debug) << "Received request with incorrect hashed nonce";
         return nullptr;
     }
     return reci;
@@ -548,7 +548,7 @@ registration_server::register_keywords(bool insert, internal::registry_record* r
 void
 registration_server::timeout_record(internal::registry_record* rec)
 {
-    logger::debug() << "Timed out record for " << peer_id(rec->id) << " at " << rec->ep;
+    BOOST_LOG_TRIVIAL(debug) << "Timed out record for " << peer_id(rec->id) << " at " << rec->ep;
     register_keywords(false, rec);
     idhash.erase(rec->id);
     all_records_.erase(rec);

@@ -54,7 +54,7 @@ regserver_client::disconnect()
     if (state_ == state::idle)
         return;
 
-    logger::debug() << this << "disconnect";
+    BOOST_LOG_TRIVIAL(debug) << this << "disconnect";
     send_delete();
 
     // Fail all outstanding lookup and search requests
@@ -87,7 +87,7 @@ void
 regserver_client::register_at(const std::string& srvname, uint16_t srvport)
 {
     assert(state_ == state::idle);
-    logger::debug() << "Register at " << srvname << ":" << srvport;
+    BOOST_LOG_TRIVIAL(debug) << "Register at " << srvname << ":" << srvport;
 
     this->srvname = srvname;
     this->srvport = srvport;
@@ -100,7 +100,7 @@ regserver_client::reregister()
     assert(!srvname.empty());
     assert(srvport != 0);
 
-    logger::debug() << "Re-register on " << srvname << ":" << srvport;
+    BOOST_LOG_TRIVIAL(debug) << "Re-register on " << srvname << ":" << srvport;
 
     // Clear any previous nonce we may have used
     if (!ni.is_empty()) {
@@ -113,7 +113,7 @@ regserver_client::reregister()
     boost::asio::ip::address addr = boost::asio::ip::address::from_string(srvname, ec);
     if (ec) {
         // Lookup the server hostname
-        logger::debug() << "Looking up rendezvous server address.";
+        BOOST_LOG_TRIVIAL(debug) << "Looking up rendezvous server address.";
         state_ = state::resolve;
         boost::asio::ip::udp::resolver::query query1(srvname, "");
         resolver_.async_resolve(query1,
@@ -125,7 +125,7 @@ regserver_client::reregister()
     }
 
     // Just use the IP address we were given in string form
-    logger::debug() << "Using plain rendezvous server address.";
+    BOOST_LOG_TRIVIAL(debug) << "Using plain rendezvous server address.";
     addrs.clear();
     addrs.emplace_back(uia::comm::endpoint(addr, srvport));
 
@@ -145,7 +145,7 @@ regserver_client::got_resolve_results(const boost::system::error_code& ec,
         return fail(ec.message());
     }
 
-    logger::debug() << "Primary rendezvous server address " << addrs[0];
+    BOOST_LOG_TRIVIAL(debug) << "Primary rendezvous server address " << addrs[0];
 
     go_insert1();
 }
@@ -173,7 +173,7 @@ regserver_client::go_insert1()
 void
 regserver_client::send_insert1()
 {
-    logger::debug() << "Insert1";
+    BOOST_LOG_TRIVIAL(debug) << "Insert1";
 
     // Send our Insert1 message
     byte_array msg;
@@ -190,17 +190,17 @@ regserver_client::send_insert1()
 void
 regserver_client::got_insert1_reply(byte_array_iwrap<flurry::iarchive>& is)
 {
-    logger::debug() << "Insert1 reply";
+    BOOST_LOG_TRIVIAL(debug) << "Insert1 reply";
 
     // Decode the rest of the reply
     is.archive() >> chal;
     if (chal.is_empty() /*rs.status() != rs.Ok*/) {
-        logger::debug() << "Got invalid Insert1 reply";
+        BOOST_LOG_TRIVIAL(debug) << "Got invalid Insert1 reply";
         return;
     }
 
     // Looks good - go to Insert2 state.
-    logger::debug() << "Insert1 reply looks good!";
+    BOOST_LOG_TRIVIAL(debug) << "Insert1 reply looks good!";
     go_insert2();
 }
 
@@ -219,7 +219,7 @@ info_blob(client_profile const& profile)
 void
 regserver_client::go_insert2()
 {
-    logger::debug() << "Insert2";
+    BOOST_LOG_TRIVIAL(debug) << "Insert2";
 
     // Find our serialized public key to send to the server.
     uia::peer_identity identi = host_->host_identity();
@@ -244,7 +244,7 @@ regserver_client::go_insert2()
 void
 regserver_client::send_insert2()
 {
-    logger::debug() << "Insert2 reply";
+    BOOST_LOG_TRIVIAL(debug) << "Insert2 reply";
 
     // Send our Insert2 message
     byte_array msg;
@@ -268,7 +268,7 @@ regserver_client::got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is)
     comm::endpoint public_ep;
     is.archive() >> life_secs >> public_ep;
     // if (rs.status() != rs.Ok) {
-    //     logger::debug() << this << "got invalid Insert2 reply";
+    //     BOOST_LOG_TRIVIAL(debug) << this << "got invalid Insert2 reply";
     //     return;
     // }
 
@@ -281,8 +281,8 @@ regserver_client::got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is)
     rereg_timer_.start(rereg);
 
     // Notify anyone interested.
-    logger::debug() << "Registered with " << srvname << " for " << life_secs << " seconds";
-    logger::debug() << "My public endpoint is " << public_ep;
+    BOOST_LOG_TRIVIAL(debug) << "Registered with " << srvname << " for " << life_secs << " seconds";
+    BOOST_LOG_TRIVIAL(debug) << "My public endpoint is " << public_ep;
     on_ready();
 }
 
@@ -303,7 +303,7 @@ regserver_client::lookup(const uia::peer_identity& idtarget, bool notify)
 void
 regserver_client::send_lookup(const uia::peer_identity& idtarget, bool notify)
 {
-    logger::debug() << "Send lookup for ID " << idtarget;
+    BOOST_LOG_TRIVIAL(debug) << "Send lookup for ID " << idtarget;
 
     // Prepare the Lookup message
     byte_array msg;
@@ -320,7 +320,7 @@ regserver_client::send_lookup(const uia::peer_identity& idtarget, bool notify)
 void
 regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool isnotify)
 {
-    logger::debug() << "got_lookup_reply " << (isnotify ? "NOTIFY" : "RESPONSE");
+    BOOST_LOG_TRIVIAL(debug) << "got_lookup_reply " << (isnotify ? "NOTIFY" : "RESPONSE");
 
     // Decode the rest of the reply
     byte_array targetid, targetinfo;
@@ -331,7 +331,7 @@ regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool 
         is.archive() >> targetloc >> targetinfo;
     }
     // if (rs.status() != rs.Ok) {
-    //     logger::debug() << this << "got invalid Lookup reply";
+    //     BOOST_LOG_TRIVIAL(debug) << this << "got invalid Lookup reply";
     //     return;
     // }
     client_profile reginfo(targetinfo);
@@ -345,10 +345,10 @@ regserver_client::got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool 
 
     // Otherwise, it should be a response to a lookup request.
     if (!(contains(lookups, target_id)) || contains(punches, target_id)) {
-        logger::debug() << "Useless lookup result";
+        BOOST_LOG_TRIVIAL(debug) << "Useless lookup result";
         return;
     }
-    logger::debug() << "Processed lookup for " << uia::peer_identity(target_id);
+    BOOST_LOG_TRIVIAL(debug) << "Processed lookup for " << uia::peer_identity(target_id);
     lookups.erase(target_id);
     punches.erase(target_id);
     on_lookup_done(target_id, targetloc, reginfo);
@@ -388,13 +388,13 @@ regserver_client::got_search_reply(byte_array_iwrap<flurry::iarchive>& is)
     int32_t nresults;
     is.archive() >> text >> complete >> nresults;
     if (/*rs.status() != rs.Ok ||*/ nresults < 0) {
-        logger::debug() << "Got invalid Search reply";
+        BOOST_LOG_TRIVIAL(debug) << "Got invalid Search reply";
         return;
     }
 
     // Make sure we actually did the indicated search
     if (!contains(searches, text)) {
-        logger::debug() << "regserver_client: useless Search result";
+        BOOST_LOG_TRIVIAL(debug) << "regserver_client: useless Search result";
         return;
     }
 
@@ -405,7 +405,7 @@ regserver_client::got_search_reply(byte_array_iwrap<flurry::iarchive>& is)
         uia::peer_identity id;
         is.archive() >> id;
         // if (rs.status() != rs.Ok) {
-        //     logger::debug() << this << "got invalid Search result ID";
+        //     BOOST_LOG_TRIVIAL(debug) << this << "got invalid Search result ID";
         //     return;
         // }
         ids.emplace_back(id);
@@ -418,7 +418,7 @@ regserver_client::got_search_reply(byte_array_iwrap<flurry::iarchive>& is)
 void
 regserver_client::send_delete()
 {
-    logger::debug() << "Send delete notice";
+    BOOST_LOG_TRIVIAL(debug) << "Send delete notice";
 
     // Prepare the Delete message
     byte_array msg;
@@ -436,7 +436,7 @@ void
 regserver_client::got_delete_reply(byte_array_iwrap<flurry::iarchive>& is)
 {
     // Ignore.
-    logger::debug() << "Got delete reply, ignored";
+    BOOST_LOG_TRIVIAL(debug) << "Got delete reply, ignored";
 }
 
 void
@@ -449,7 +449,7 @@ regserver_client::send(const byte_array& msg)
     // XXX should only do this during initial discovery!!
     auto socks = host_->active_sockets();
     if (socks.empty()) {
-        logger::warning() << "No active network sockets available";
+        BOOST_LOG_TRIVIAL(warning) << "No active network sockets available";
     }
     for (auto sock : socks) {
         for (auto addr : addrs) {

@@ -8,7 +8,7 @@
 //
 #include <unordered_map>
 #include <unordered_set>
-#include "arsenal/logging.h"
+#include <boost/log/trivial.hpp>
 #include "arsenal/algorithm.h"
 #include "arsenal/make_unique.h"
 #include "uia/peer_identity.h"
@@ -55,13 +55,13 @@ public:
 routing_receiver::routing_receiver(shared_ptr<sss::host> host)
     : comm::packet_receiver(host.get())
 {
-    logger::debug() << "Routing receiver created";
+    BOOST_LOG_TRIVIAL(debug) << "Routing receiver created";
 }
 
 void
 routing_receiver::receive(boost::asio::const_buffer msg, uia::comm::socket_endpoint const& src)
 {
-    logger::debug() << "Routing receiver: received routing packet";
+    BOOST_LOG_TRIVIAL(debug) << "Routing receiver: received routing packet";
     // Decode the first part of the message
     // uint32_t code;
     byte_array nhi;
@@ -71,14 +71,14 @@ routing_receiver::receive(boost::asio::const_buffer msg, uia::comm::socket_endpo
 
     // Find the appropriate client
     if (!contains(hashed_nonce_clients_, nhi)) {
-        logger::debug() << "Received message for nonexistent client";
+        BOOST_LOG_TRIVIAL(debug) << "Received message for nonexistent client";
         return;
     }
     regserver_client* cli = static_cast<regserver_client*>(hashed_nonce_clients_[nhi]);
 
     // Make sure this message comes from one of the server's addresses
     if (!contains(cli->addrs, src) or src.port() != cli->srvport) {
-        logger::debug() << "Received message from wrong endpoint " << src;
+        BOOST_LOG_TRIVIAL(debug) << "Received message from wrong endpoint " << src;
         return;
     }
 
@@ -93,7 +93,7 @@ routing_receiver::receive(boost::asio::const_buffer msg, uia::comm::socket_endpo
     //         return cli->got_lookup_reply(read, true);
     //     // @todo Add regserver REG_REQUEST handling for implementing regserver directly inside
     //     // client.
-    //     default: logger::debug() << this << "bad message code" << code;
+    //     default: BOOST_LOG_TRIVIAL(debug) << this << "bad message code" << code;
     // }
 }
 

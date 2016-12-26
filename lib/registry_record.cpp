@@ -6,7 +6,7 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See file LICENSE_1_0.txt or a copy at http://www.boost.org/LICENSE_1_0.txt)
 //
-#include "arsenal/logging.h"
+#include <boost/log/trivial.hpp>
 #include "uia/peer_identity.h"
 #include "routing/private/registry_record.h"
 #include "routing/registration_server.h"
@@ -33,7 +33,7 @@ registry_record::registry_record(registration_server& srv,
     , profile_info_(info)
     , timer_(srv.host_.get())
 {
-    logger::debug() << "Registering record for " << uia::peer_identity(id.as_string()) << " at " << ep;
+    BOOST_LOG_TRIVIAL(debug) << "Registering record for " << uia::peer_identity(id.as_string()) << " at " << ep;
 
     // Set the record's timeout
     timer_.on_timeout.connect([this, &srv](bool) { srv.timeout_record(this); });
@@ -42,7 +42,7 @@ registry_record::registry_record(registration_server& srv,
 
 registry_record::~registry_record()
 {
-    logger::debug() << "~registry_record: deleting record for " << uia::peer_identity(id.as_string());
+    BOOST_LOG_TRIVIAL(debug) << "~registry_record: deleting record for " << uia::peer_identity(id.as_string());
 }
 
 } // internal namespace
