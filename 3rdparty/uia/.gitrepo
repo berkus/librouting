@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:berkus/libuia.git
+	branch = master
+	commit = 60adbe3669fae75a037aa1ff0b17569b1a4c335c
+	parent = ecb506fb6d8bc231d6f62590b8cbf3e390641bc2
+	cmdver = 0.3.1
