@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:berkus/libarsenal.git
+	branch = master
+	commit = 85bb694d26033280f1a3eefc32a7466fc9c01394
+	parent = 4ea78a44cba0844bf63eb82b5b67273203f79f71
+	cmdver = 0.3.1
