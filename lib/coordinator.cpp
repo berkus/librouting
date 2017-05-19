@@ -10,7 +10,6 @@
 #include <unordered_set>
 #include <boost/log/trivial.hpp>
 #include "arsenal/algorithm.h"
-#include "arsenal/make_unique.h"
 #include "uia/peer_identity.h"
 #include "uia/comm/packet_receiver.h"
 #include "routing/coordinator.h"
@@ -125,7 +124,7 @@ public:
 
 client_coordinator::client_coordinator(shared_ptr<sss::host> host)
     : host_(*host.get())
-    , pimpl_(stdext::make_unique<coordinator_impl>(host))
+    , pimpl_(std::make_unique<coordinator_impl>(host))
 {
 }
 
