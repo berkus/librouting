@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:berkus/cmake-setup.git
+	branch = master
+	commit = 20086e7f55314729cf149065c92e16c4ce2478fa
+	parent = 5a1ea801723b78abc902db453ab64720fb565b98
+	cmdver = 0.3.1
