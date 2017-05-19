@@ -18,8 +18,7 @@
 using namespace std;
 using namespace uia::routing::internal;
 
-namespace uia {
-namespace routing {
+namespace uia::routing {
 
 //=====================================================================================================================
 // routing_receiver
@@ -159,5 +158,4 @@ client_coordinator::clear_nonce(byte_array const& nonce)
     pimpl_->routing_receiver_.clear_nonce(nonce);
 }
 
-} // routing namespace
-} // uia namespace
+} // uia::routing namespace
