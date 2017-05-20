@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.8)
 project(libuia)
 
 if (NOT BUILD_IN_UVVY)
     include(cmake/setup.cmake)
-    include_directories(3rdparty/endian 3rdparty/arsenal/include)
-    include_directories(3rdparty)
+    include_directories(3rdparty/arsenal/include)
+    add_subdirectory(3rdparty/arsenal/lib)
 endif()
 
 include_directories(include)

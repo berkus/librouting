@@ -4,6 +4,8 @@ if (NOT BUILD_IN_UVVY)
     include(cmake/setup.cmake)
     include_directories(3rdparty/arsenal/include)
     add_subdirectory(3rdparty/arsenal/lib)
+    include_directories(3rdparty/uia/include)
+    add_subdirectory(3rdparty/uia/lib)
 endif()
 
 include_directories(include)
