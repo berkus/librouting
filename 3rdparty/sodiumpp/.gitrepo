@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:berkus/sodiumpp.git
+	branch = master
+	commit = 6c4c8279732954d2d95ae4430cc6a087063189ba
+	parent = 654007641fc6195a7f77c3fa29d4d23500868655
+	cmdver = 0.3.1
