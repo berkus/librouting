@@ -22,7 +22,7 @@ socket_endpoint::send(const char *data, int size) const
     if (auto s = socket_.lock()) {
         return s->send(*this, data, size);
     }
-    logger::debug() << "Trying to send on a nonexistent link";
+    BOOST_LOG_TRIVIAL(debug) << "Trying to send on a nonexistent link";
     return false;
 }
 

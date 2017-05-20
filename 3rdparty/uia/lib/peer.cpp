@@ -48,16 +48,16 @@ static int
 affinity(boost::asio::ip::address a, boost::asio::ip::address b)
 {
     if (a.is_v6() != b.is_v6()) {
-        // logger::debug() << "Addresses " << a << " and " << b << " are not comparable";
+        // BOOST_LOG_TRIVIAL(debug) << "Addresses " << a << " and " << b << " are not comparable";
         return 0; // ipv4 and ipv6 do not match at all
     }
     if (a.is_v6()) {
         auto aff = bit_affinity(a.to_v6().to_bytes(), b.to_v6().to_bytes());
-        // logger::debug() << "Addresses " << a << " and " << b << " have affinity " << aff;
+        // BOOST_LOG_TRIVIAL(debug) << "Addresses " << a << " and " << b << " have affinity " << aff;
         return aff;
     } else {
         auto aff = bit_affinity(a.to_v4().to_bytes(), b.to_v4().to_bytes());
-        // logger::debug() << "Addresses " << a << " and " << b << " have affinity " << aff;
+        // BOOST_LOG_TRIVIAL(debug) << "Addresses " << a << " and " << b << " have affinity " << aff;
         return aff;
     }
 }
@@ -128,7 +128,7 @@ peer::connect_channel()
     //
     // if (receivers(SIGNAL(flowConnected())) == 0) return;
 
-    logger::debug() << "Trying to connect channel with peer " << remote_id_;
+    BOOST_LOG_TRIVIAL(debug) << "Trying to connect channel with peer " << remote_id_;
 
     // @todo Ask routing to figure out other possible endpoints for this peer.
 
@@ -172,12 +172,12 @@ peer::initiate_key_exchange(uia::comm::socket_wptr l, uia::comm::endpoint const&
     {
         std::lock_guard<std::mutex> lock(kex_mutex_);
         if (contains(key_exchanges_initiated_, lep)) {
-            logger::debug() << "Already attempting connection to " << ep;
+            BOOST_LOG_TRIVIAL(debug) << "Already attempting connection to " << ep;
             return;
         }
     }
 
-    logger::debug() << "Initiating key exchange from socket " << l.lock() << " to remote endpoint "
+    BOOST_LOG_TRIVIAL(debug) << "Initiating key exchange from socket " << l.lock() << " to remote endpoint "
                     << ep;
 
     // Make sure our responder exists to receive and dispatch incoming
@@ -189,7 +189,7 @@ peer::initiate_key_exchange(uia::comm::socket_wptr l, uia::comm::endpoint const&
     // Create and bind a new channel.
     // channel* chan = new stream_channel(host_, this, remote_id_);
     // if (!chan->bind(l, ep)) {
-    //     logger::warning() << "Could not bind new channel to target " << ep;
+    //     BOOST_LOG_TRIVIAL(warning) << "Could not bind new channel to target " << ep;
     //     delete chan;
     //     return on_channel_failed();
     // } // @sa stream_responder::create_channel
@@ -210,7 +210,7 @@ peer::initiate_key_exchange(uia::comm::socket_wptr l, uia::comm::endpoint const&
 void
 peer::channel_started(socket_channel* channel)
 {
-    logger::debug() << "Stream peer - channel " << channel << " started";
+    BOOST_LOG_TRIVIAL(debug) << "Stream peer - channel " << channel << " started";
 
     assert(channel->is_active());
     // assert(channel->target_peer() == this);
@@ -230,7 +230,7 @@ peer::channel_started(socket_channel* channel)
     // clear_primary_channel();
     // }
 
-    logger::debug() << "Stream peer - new primary channel " << channel;
+    BOOST_LOG_TRIVIAL(debug) << "Stream peer - new primary channel " << channel;
 
     // Use this channel as our primary channel for this target.
     // primary_channel_ = channel;
@@ -273,7 +273,7 @@ peer::add_location_hint(uia::comm::endpoint const& hint)
         return; // We already know; sit down...
     }
 
-    logger::debug() << "Found endpoint " << hint << " for target " << remote_id_;
+    BOOST_LOG_TRIVIAL(debug) << "Found endpoint " << hint << " for target " << remote_id_;
 
     // Add this endpoint to our set
     locations_.insert(hint);
@@ -298,7 +298,7 @@ peer::completed(negotiation::initiator_ptr ki, socket_channel_ptr chan)
     // @todo Delete channel automatically if key_initiator failed...
     uia::comm::socket_endpoint lep = ki->remote_endpoint();
 
-    // logger::debug() << "Stream peer key exchange for ID " << remote_id_ << " to " << lep
+    // BOOST_LOG_TRIVIAL(debug) << "Stream peer key exchange for ID " << remote_id_ << " to " << lep
     //                 << (success ? " succeeded" : " failed");
     {
         std::lock_guard<std::mutex> lock(kex_mutex_);
@@ -350,7 +350,7 @@ peer::channel_status_changed(comm::socket::status new_status)
             // if (!initiator->is_early()) {
             // continue; // too late - let it finish
             // }
-            logger::debug() << "Deleting " << initiator << " for " << remote_id_ << " to "
+            BOOST_LOG_TRIVIAL(debug) << "Deleting " << initiator << " for " << remote_id_ << " to "
                             << initiator->remote_endpoint();
 
             assert(ki.first == initiator->remote_endpoint());
@@ -364,7 +364,7 @@ peer::channel_status_changed(comm::socket::status new_status)
 
     if (new_status == comm::socket::status::stalled) {
         // if (++stall_warnings_ < stall_warnings_max) {
-        //     logger::warning() << "Primary channel stall " << stall_warnings_ << " of "
+        //     BOOST_LOG_TRIVIAL(warning) << "Primary channel stall " << stall_warnings_ << " of "
         //                       << stall_warnings_max;
         //     return on_link_status_changed(new_status);
         // }

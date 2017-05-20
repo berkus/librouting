@@ -80,7 +80,7 @@ socket::is_congestion_controlled(endpoint const&)
 size_t
 socket::may_transmit(endpoint const&)
 {
-    logger::fatal() << "may_transmit() called on a non-congestion-controlled socket";
+    BOOST_LOG_TRIVIAL(fatal) << "may_transmit() called on a non-congestion-controlled socket";
     return 0;
 }
 

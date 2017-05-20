@@ -225,7 +225,7 @@ sim_connection::set_preset(preset p)
         case wifi_54: return set_link_params(wifi54);
         case wifi_600: return set_link_params(wifi600);
     }
-    logger::warning() << "Unknown connection preset " << p;
+    BOOST_LOG_TRIVIAL(warning) << "Unknown connection preset " << p;
 }
 
 std::shared_ptr<sim_host>

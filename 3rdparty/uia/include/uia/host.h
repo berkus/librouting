@@ -16,6 +16,7 @@
 #include "uia/channels/channel_host_state.h"
 #include "uia/asio_host_state.h"
 #include "arsenal/settings_provider.h"
+#include <boost/log/trivial.hpp>
 
 namespace uia {
 
@@ -35,7 +36,7 @@ protected:
 public:
     // Hide the constructor.
     explicit host(private_tag) {}
-    ~host() { logger::debug() << "~host " << this; }
+    ~host() { BOOST_LOG_TRIVIAL(debug) << "~host " << this; }
 
     inline host_ptr get_host() override { return shared_from_this(); }
 

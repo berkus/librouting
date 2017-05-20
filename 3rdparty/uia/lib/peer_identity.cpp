@@ -95,7 +95,7 @@ void
 identity_host_state::set_host_identity(peer_identity const& ident)
 {
     if (!ident.has_private_key()) {
-        logger::warning() << "Using a host identity with no private key!";
+        BOOST_LOG_TRIVIAL(warning) << "Using a host identity with no private key!";
     }
     host_identity_ = ident;
 }
@@ -121,7 +121,7 @@ identity_host_state::init_identity(settings_provider* settings)
             return; // Success
     }
 
-    logger::warning() << "Invalid host identity in settings: generating new identity";
+    BOOST_LOG_TRIVIAL(warning) << "Invalid host identity in settings: generating new identity";
 
     // Generate a new key pair
     host_identity_ = peer_identity::generate();

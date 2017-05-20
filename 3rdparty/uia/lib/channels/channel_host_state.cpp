@@ -30,7 +30,7 @@ channel_host_state::receiver_for(packet_magic_t magic)
 {
     auto it = receivers_.find(magic);
     if (it == receivers_.end()) {
-        logger::debug() << "Receiver not found looking for magic " << hex << magic;
+        BOOST_LOG_TRIVIAL(debug) << "Receiver not found looking for magic " << hex << magic;
         return packet_receiver_wptr();
     }
     return it->second;

@@ -36,7 +36,7 @@ sim_packet::sim_packet(std::shared_ptr<sim_host> source_host,
     , timer_(source_host.get())
 {
     if (!target_host_) {
-        logger::warning() << "Destination host " << dst << " not found on link " << pipe;
+        BOOST_LOG_TRIVIAL(warning) << "Destination host " << dst << " not found on link " << pipe;
         // @todo - this packet should clean up itself somehow
     }
 }
@@ -60,7 +60,7 @@ sim_packet::send()
 
     // Simulate random loss
     if (param.loss > 0.0 and uni_dist(rng) <= param.loss) {
-        logger::info() << "Packet randomly DROPPED";
+        BOOST_LOG_TRIVIAL(info) << "Packet randomly DROPPED";
         return; // @todo - this packet should clean up itself somehow
     }
 
@@ -74,7 +74,7 @@ sim_packet::send()
     // If the computed arrival time is too late, drop this packet.
     // Implements a standard, basic drop-tail policy.
     if (actual_arrival > nominal_arrival + param.queue) {
-        logger::info() << "Packet DROPPED";
+        BOOST_LOG_TRIVIAL(info) << "Packet DROPPED";
         return; // @todo - this packet should clean up itself somehow
     }
 
@@ -89,7 +89,7 @@ sim_packet::send()
     arrival_time  = actual_arrival + packet_time; // Updates connection's actual arrival time.
     arrival_time_ = arrival_time;
 
-    logger::info() << "Scheduling packet to arrive at " << arrival_time_;
+    BOOST_LOG_TRIVIAL(info) << "Scheduling packet to arrive at " << arrival_time_;
 
     target_host_->enqueue_packet(shared_from_this());
 
@@ -102,7 +102,7 @@ sim_packet::arrive()
 {
     // Make sure we're still on the destination host's queue
     if (!target_host_ or !target_host_->packet_on_queue(shared_from_this())) {
-        logger::info() << "No longer queued to destination " << to_;
+        BOOST_LOG_TRIVIAL(info) << "No longer queued to destination " << to_;
         return; // @todo - this packet should clean up itself somehow
     }
 
@@ -110,7 +110,7 @@ sim_packet::arrive()
 
     std::shared_ptr<sim_socket> socket = target_host_->socket_for_port(to_.port());
     if (!socket) {
-        logger::info() << "No listener registered on port " << to_.port() << " in target host";
+        BOOST_LOG_TRIVIAL(info) << "No listener registered on port " << to_.port() << " in target host";
         return; // @todo - this packet should clean up itself somehow
     }
 

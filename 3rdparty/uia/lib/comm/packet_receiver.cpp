@@ -28,7 +28,7 @@ packet_receiver::bind(uint64_t magic)
     assert(!host_->has_receiver_for(magic));
 
     magic_ = magic;
-    logger::debug() << "Link receiver " << this << " binds for magic " << hex << magic_;
+    BOOST_LOG_TRIVIAL(debug) << "Link receiver " << this << " binds for magic " << hex << magic_;
     host_->bind_receiver(magic_, shared_from_this());
 }
 
@@ -37,7 +37,7 @@ packet_receiver::unbind()
 {
     if (is_bound())
     {
-        logger::debug() << "Link receiver " << this << " unbinds magic " << hex << magic_;
+        BOOST_LOG_TRIVIAL(debug) << "Link receiver " << this << " unbinds magic " << hex << magic_;
         host_->unbind_receiver(magic_);
         // make it possible to unbind from multiple magic values too...
         magic_ = 0;

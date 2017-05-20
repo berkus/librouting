@@ -19,6 +19,7 @@
 #include "arsenal/algorithm.h"
 #include "arsenal/subrange.h"
 #include <boost/make_unique.hpp>
+#include <boost/log/trivial.hpp>
 
 using namespace std;
 using namespace sodiumpp;
@@ -32,7 +33,7 @@ namespace {
 void
 warning(string message)
 {
-    logger::warning() << "Key exchange - " << message;
+    BOOST_LOG_TRIVIAL(warning) << "Key exchange - " << message;
 }
 
 template <typename T>
@@ -55,7 +56,7 @@ namespace uia {
 void
 socket_channel::send_message(string payload)
 {
-    logger::debug() << "Channel sending MESSAGE to " << remote_ep_;
+    BOOST_LOG_TRIVIAL(debug) << "Channel sending MESSAGE to " << remote_ep_;
     uia::packets::message_packet_header packet;
 
     boxer<random_nonce<16>> seal(
@@ -104,7 +105,7 @@ responder::create_channel(sodiumpp::secret_key local_short,
 void
 responder::receive(boost::asio::const_buffer msg, uia::comm::socket_endpoint src)
 {
-    logger::debug() << "responder::receive " << dec << boost::asio::buffer_size(msg)
+    BOOST_LOG_TRIVIAL(debug) << "responder::receive " << dec << boost::asio::buffer_size(msg)
                     << " bytes from " << src;
 
     auto magic = *boost::asio::buffer_cast<const comm::packet_magic_t*>(msg);
@@ -113,7 +114,7 @@ responder::receive(boost::asio::const_buffer msg, uia::comm::socket_endpoint src
             return got_hello(msg, src);
         case magic::cookie_packet::value: {
             auto initiator = host_->get_initiator(src);
-            logger::debug() << "Found initiator " << initiator;
+            BOOST_LOG_TRIVIAL(debug) << "Found initiator " << initiator;
             return initiator->got_cookie(msg, src);
         }
         case magic::initiate_packet::value:
@@ -129,7 +130,7 @@ responder::receive(boost::asio::const_buffer msg, uia::comm::socket_endpoint src
 void
 responder::got_hello(boost::asio::const_buffer msg, uia::comm::socket_endpoint const& src)
 {
-    logger::debug() << "Responder got hello packet from " << src;
+    BOOST_LOG_TRIVIAL(debug) << "Responder got hello packet from " << src;
     uia::packets::hello_packet_header hello;
     arsenal::fusionary::read(hello, msg);
 
@@ -149,7 +150,7 @@ responder::got_hello(boost::asio::const_buffer msg, uia::comm::socket_endpoint c
 void
 responder::send_cookie(string clientKey, uia::comm::socket_endpoint const& src)
 {
-    logger::debug() << "Responder sending cookie to " << src;
+    BOOST_LOG_TRIVIAL(debug) << "Responder sending cookie to " << src;
     uia::packets::cookie_packet_header packet;
     uia::packets::responder_cookie cookie;
     secret_key sessionKey; // Generate short-term server key
@@ -180,7 +181,7 @@ responder::send_cookie(string clientKey, uia::comm::socket_endpoint const& src)
 void
 responder::got_initiate(boost::asio::const_buffer buf, uia::comm::socket_endpoint const& src)
 {
-    logger::debug() << "Responder got initiate packet from " << src;
+    BOOST_LOG_TRIVIAL(debug) << "Responder got initiate packet from " << src;
     uia::packets::initiate_packet_header init;
     buf = arsenal::fusionary::read(init, buf);
 
@@ -220,7 +221,7 @@ responder::got_initiate(boost::asio::const_buffer buf, uia::comm::socket_endpoin
 
     client_short_term_key = vouch;
 
-    logger::debug() << "Responder VALIDATED initiate packet from " << src;
+    BOOST_LOG_TRIVIAL(debug) << "Responder VALIDATED initiate packet from " << src;
 
     // Channel needs two pairs of short-term keys and remote endpoint to operate
     channel_ = create_channel(short_term_key, client_short_term_key, client_long_term_key, src);
@@ -244,7 +245,7 @@ responder::got_probe(boost::asio::const_buffer msg, comm::socket_endpoint const&
 {
     // Trigger a retransmission of the dh_init1 packet
     // for each outstanding initiation attempt to the given target.
-    logger::debug() << "Responder got probe packet from " << src;
+    BOOST_LOG_TRIVIAL(debug) << "Responder got probe packet from " << src;
 
     // @todo This ruins the init/response chain for the DH exchange
     // Peers are left in a perpetual loop of reinstating almost always broken peer channel.
@@ -270,7 +271,7 @@ responder::got_probe(boost::asio::const_buffer msg, comm::socket_endpoint const&
 void
 responder::send_probe(comm::endpoint dest)
 {
-    logger::debug() << "Send probe0 to " << dest;
+    BOOST_LOG_TRIVIAL(debug) << "Send probe0 to " << dest;
     // for (auto s : get_host()->active_sockets()) {
     //     uia::comm::socket_endpoint ep(s, dest);
     //     send_r0(magic(), ep);

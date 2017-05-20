@@ -48,7 +48,7 @@ sim_socket::bind(uia::comm::endpoint ep)
     host_->register_socket_for_port(port_,
                                     static_pointer_cast<sim_socket>(shared_from_this()));
 
-    logger::debug() << "Bound virtual socket on " << ep;
+    BOOST_LOG_TRIVIAL(debug) << "Bound virtual socket on " << ep;
 
     set_active(true);
     return true;
@@ -76,7 +76,7 @@ sim_socket::send(uia::comm::endpoint ep, const char* data, size_t size)
     src.port(port_);
     sim_host_ptr dest_host = host_->neighbor_at(ep, src);
     if (!dest_host) {
-        logger::warning() << "Unknown or non-adjacent target host " << ep;
+        BOOST_LOG_TRIVIAL(warning) << "Unknown or non-adjacent target host " << ep;
         return false;
     }
 

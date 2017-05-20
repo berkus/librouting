@@ -16,6 +16,7 @@
 #include "uia/host.h"
 #include "uia/channels/socket_channel.h"
 #include "uia/packet_format.h"
+#include <boost/log/trivial.hpp>
 
 using namespace std;
 using namespace sodiumpp;
@@ -51,25 +52,26 @@ initiator::initiator(host_ptr host, peer_identity const& target_peer, comm::sock
     , retransmit_timer_(host.get())
     , minute_timer_(host.get())
 {
-    logger::debug() << "Creating kex initiator " << this;
+    BOOST_LOG_TRIVIAL(debug) << "Creating kex initiator " << this;
 
     assert(target_ != uia::comm::endpoint());
     retransmit_timer_.on_timeout.connect([this](bool fail) { retransmit(fail); });
     minute_timer_.on_timeout.connect([this](bool fail) { cookie_expired(); });
 
-    logger::debug() << "Long term responder pk " << encode::to_proquint(remote_id_.public_key());
+    BOOST_LOG_TRIVIAL(debug) << "Long term responder pk "
+        << arsenal::encode::to_proquint(remote_id_.public_key());
 }
 
 initiator::~initiator()
 {
-    logger::debug() << "Destroying initiator " << this;
+    BOOST_LOG_TRIVIAL(debug) << "Destroying initiator " << this;
     cancel();
 }
 
 void
 initiator::exchange_keys()
 {
-    logger::debug() << "Initiating key exchange connection to peer " << target_ << "/"
+    BOOST_LOG_TRIVIAL(debug) << "Initiating key exchange connection to peer " << target_ << "/"
                     << remote_id_;
     host_->register_initiator(target_, shared_from_this());
     send_hello();
@@ -79,14 +81,14 @@ void
 initiator::retransmit(bool fail)
 {
     if (fail) {
-        logger::debug() << "Key exchange failed";
+        BOOST_LOG_TRIVIAL(debug) << "Key exchange failed";
         state_ = state::done;
         retransmit_timer_.stop();
         minute_timer_.stop();
         return on_completed(shared_from_this(), nullptr);
     }
 
-    logger::debug() << "Time to retransmit the key exchange packet.";
+    BOOST_LOG_TRIVIAL(debug) << "Time to retransmit the key exchange packet.";
 
     // If we're gonna resend the init packet, make sure we are registered as a receiver for
     // response packets.
@@ -119,7 +121,7 @@ initiator::done()
     assert(channel_);
 
     bool send_signal = (state_ != state::done);
-    logger::debug() << "Key exchange completed with " << target_
+    BOOST_LOG_TRIVIAL(debug) << "Key exchange completed with " << target_
                     << (send_signal ? " (signaling upper layer)" : "");
     state_ = state::done;
     cancel();
@@ -131,7 +133,7 @@ initiator::done()
 void
 initiator::cancel()
 {
-    logger::debug() << "Stop initiating to " << target_;
+    BOOST_LOG_TRIVIAL(debug) << "Stop initiating to " << target_;
     retransmit_timer_.stop();
     minute_timer_.stop();
     host_->unregister_initiator(target_);
@@ -140,7 +142,7 @@ initiator::cancel()
 void
 initiator::send_hello()
 {
-    logger::debug() << "Send HELLO to " << target_;
+    BOOST_LOG_TRIVIAL(debug) << "Send HELLO to " << target_;
 
     boxer<nonce64> seal(remote_id_.public_key(), short_term_secret_key, HELLO_NONCE_PREFIX);
     auto box_contents = host_->host_identity().secret_key().pk.get() + string(32, '\0');
@@ -159,7 +161,7 @@ initiator::send_hello()
 void
 initiator::got_cookie(boost::asio::const_buffer buf, uia::comm::socket_endpoint const& src)
 {
-    logger::debug() << "initiator::got_cookie from endpoint " << src;
+    BOOST_LOG_TRIVIAL(debug) << "initiator::got_cookie from endpoint " << src;
     if (src != target_)
         return; // not our cookie!
 
@@ -197,7 +199,7 @@ initiator::create_channel(sodiumpp::secret_key local_short,
                           sodiumpp::public_key remote_long,
                           uia::comm::socket_endpoint const& responder_ep)
 {
-    logger::debug() << "initiator::create_channel optimistically for " << responder_ep;
+    BOOST_LOG_TRIVIAL(debug) << "initiator::create_channel optimistically for " << responder_ep;
     channel_ = host_->channel_responder()->create_channel(
         local_short, remote_short, remote_long, responder_ep);
 
