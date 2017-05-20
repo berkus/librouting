@@ -11,6 +11,7 @@
 #include "arsenal/byte_array.h"
 #include "uia/comm/socket_endpoint.h"
 #include "uia/timer.h" // @todo move sss::async to async
+#include <chrono>
 
 namespace uia::routing {
 
@@ -25,7 +26,7 @@ namespace internal {
 class registry_record
 {
     friend class uia::routing::registration_server;
-    static constexpr uint32_t timeout_seconds = (1 * 60 * 60); // Records last 1 hour
+    static constexpr auto timeout = std::chrono::hours(1); // Records last 1 hour
 
     registration_server& srv;
     arsenal::byte_array const id;

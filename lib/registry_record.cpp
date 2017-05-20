@@ -13,7 +13,7 @@
 
 namespace uia::routing::internal {
 
-constexpr uint32_t registry_record::timeout_seconds;
+constexpr auto registry_record::timeout;
 
 //=================================================================================================
 // registry_record implementation
@@ -35,7 +35,7 @@ registry_record::registry_record(registration_server& srv,
 
     // Set the record's timeout
     timer_.on_timeout.connect([this, &srv](bool) { srv.timeout_record(this); });
-    timer_.start(boost::posix_time::seconds(timeout_seconds));
+    timer_.start(boost::posix_time::seconds(timeout));
 }
 
 registry_record::~registry_record()
