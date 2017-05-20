@@ -2,8 +2,7 @@
 
 #include "arsenal/fusionary.hpp"
 
-namespace uia {
-namespace fusionary_types {
+namespace uia::fusionary_types {
 
 struct uint24_t
 {
@@ -33,8 +32,7 @@ struct uint56_t
     operator uint64_t() { return uint64_t(high) << 24 | low; }
 };
 
-} // fusionary_types namespace
-} // uia namespace
+} // uia::fusionary_types namespace
 
 // clang-format off
 BOOST_FUSION_ADAPT_STRUCT(

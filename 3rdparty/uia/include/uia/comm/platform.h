@@ -11,15 +11,11 @@
 #include <vector>
 #include "uia/comm/socket_endpoint.h"
 
-namespace uia {
-namespace comm {
-namespace platform {
+namespace uia::comm::platform {
 
 /**
  * Find all of the local host's IP addresses (platform-specific).
  */
 std::vector<endpoint> local_endpoints();
 
-} // platform namespace
-} // comm namespace
-} // uia namespace
+} // uia::comm::platform namespace

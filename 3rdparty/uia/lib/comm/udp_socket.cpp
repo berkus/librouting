@@ -18,8 +18,7 @@ using namespace boost::asio;
 
 constexpr size_t MAX_PACKET_SIZE = 1280;
 
-namespace uia {
-namespace comm {
+namespace uia::comm {
 
 //=================================================================================================
 // helper function
@@ -201,5 +200,4 @@ udp_socket::send(endpoint ep, char const* data, size_t size)
     return true;
 }
 
-} // comm namespace
-} // uia namespace
+} // uia::comm namespace

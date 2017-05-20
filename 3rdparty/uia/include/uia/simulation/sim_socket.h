@@ -11,8 +11,7 @@
 #include "uia/comm/socket.h"
 #include "uia/forward_ptrs.h"
 
-namespace uia {
-namespace simulation {
+namespace uia::simulation {
 
 class sim_socket : public uia::comm::socket
 {
@@ -35,5 +34,4 @@ public:
     using uia::comm::socket::receive;
 };
 
-} // simulation namespace
-} // sss namespace
+} // uia::simulation namespace

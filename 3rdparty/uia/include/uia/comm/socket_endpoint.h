@@ -12,8 +12,7 @@
 #include "arsenal/flurry.h"
 #include "arsenal/hash_combine.h"
 
-namespace uia {
-namespace comm {
+namespace uia::comm {
 
 class socket;
 
@@ -48,8 +47,8 @@ public:
      * Send a message to this endpoint on this socket.
      * @return true if send succeeded, false if there are problems with sending.
      */
-    bool send(const char *data, int size) const;
-    inline bool send(const byte_array& msg) const {
+    bool send(char const* data, int size) const;
+    inline bool send(arsenal::byte_array const& msg) const {
         return send(msg.const_data(), msg.size());
     }
     /**@}*/
@@ -60,8 +59,7 @@ public:
     std::weak_ptr<socket> socket() const { return socket_; }
 };
 
-} // comm namespace
-} // uia namespace
+} // uia::comm namespace
 
 // Hash specialization for endpoint
 namespace std {
@@ -80,7 +78,7 @@ struct hash<uia::comm::endpoint> : public std::unary_function<uia::comm::endpoin
 
 } // std namespace
 
-namespace flurry {
+namespace arsenal::flurry {
 
 // Flurry specialization for endpoint
 inline flurry::oarchive& operator << (flurry::oarchive& oa, uia::comm::endpoint const& ep)

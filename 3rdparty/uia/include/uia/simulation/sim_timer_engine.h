@@ -10,8 +10,7 @@
 
 #include "uia/timer_engine.h"
 
-namespace uia {
-namespace simulation {
+namespace uia::simulation {
 
 class simulator;
 
@@ -31,5 +30,4 @@ public:
     inline void clear_wake_time() { wake_ = boost::date_time::not_a_date_time; }
 };
 
-} // simulation namespace
-} // sss namespace
+} // uia::simulation namespace

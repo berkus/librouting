@@ -14,8 +14,7 @@
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/signals2/signal.hpp>
 
-namespace uia {
-namespace simulation {
+namespace uia::simulation {
 
 class sim_timer_engine;
 
@@ -61,5 +60,4 @@ public:
     step_event_signal on_step_event;
 };
 
-} // simulation namespace
-} // sss namespace
+} // uia::simulation namespace

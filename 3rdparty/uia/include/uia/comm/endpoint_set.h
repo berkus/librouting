@@ -12,8 +12,7 @@
 #include <list>
 #include "uia/comm/socket_endpoint.h"
 
-namespace uia {
-namespace comm {
+namespace uia::comm {
 
 /**
  * A set of endpoints with additional methods to calculate endpoint distance metrics.
@@ -32,5 +31,4 @@ public:
     std::list<endpoint> affinity_sorted_to(const uia::comm::endpoint other);
 };
 
-} // comm namespace
-} // uia namespace
+} // uia::comm namespace

@@ -13,10 +13,13 @@
 #include "uia/channels/channel_host_state.h"
 #include "uia/forward_ptrs.h"
 
+namespace arsenal {
+
 class byte_array;
 
-namespace uia {
-namespace comm {
+} // arsenal namespace
+
+namespace uia::comm {
 
 class socket_endpoint;
 
@@ -59,5 +62,4 @@ public:
     virtual void receive(boost::asio::const_buffer msg, socket_endpoint src) = 0;
 };
 
-} // comm namespace
-} // uia namespace
+} // uia::comm namespace

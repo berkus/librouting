@@ -21,8 +21,7 @@ using namespace std;
 using namespace uia::comm;
 using namespace boost::asio;
 
-namespace uia {
-namespace comm {
+namespace uia::comm {
 
 //=================================================================================================
 // socket_host_state
@@ -118,5 +117,4 @@ socket_host_state::active_local_endpoints()
     return result;
 }
 
-} // comm namespace
-} // uia namespace
+} // uia::comm namespace

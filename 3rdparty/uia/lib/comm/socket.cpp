@@ -17,8 +17,7 @@
 using namespace std;
 using namespace boost;
 
-namespace uia {
-namespace comm {
+namespace uia::comm {
 
 //=================================================================================================
 // socket
@@ -85,5 +84,4 @@ socket::may_transmit(endpoint const&)
     return 0;
 }
 
-} // comm namespace
-} // uia namespace
+} // uia::comm namespace

@@ -17,8 +17,7 @@
 #include "uia/timer.h"
 #include "uia/forward_ptrs.h"
 
-namespace uia {
-namespace negotiation {
+namespace uia::negotiation {
 
 /**
  * This abstract base class manages the responder side of the key exchange.
@@ -104,5 +103,4 @@ private:
     void send_cookie(std::string clientKey, comm::socket_endpoint const& src);
 };
 
-} // negotiation namespace
-} // sss namespace
+} // uia::negotiation namespace

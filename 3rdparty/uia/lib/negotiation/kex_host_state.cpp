@@ -11,8 +11,7 @@
 #include "uia/negotiation/constants.h"
 #include "arsenal/logging.h"
 
-namespace uia {
-namespace negotiation {
+namespace uia::negotiation {
 
 void
 kex_host_state::instantiate_responder()
@@ -53,5 +52,4 @@ kex_host_state::unregister_initiator(uia::comm::endpoint ep)
     initiators_.erase(ep);
 }
 
-} // negotiation namespace
-} // uia namespace
+} // uia::negotiation namespace

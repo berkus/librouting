@@ -12,8 +12,7 @@
 #include "uia/comm/socket_endpoint.h"
 #include <boost/signals2/signal.hpp>
 
-namespace uia {
-namespace comm {
+namespace uia::comm {
 
 // Get a message, dispatch to the right channel if exists.
 class message_receiver : public uia::comm::packet_receiver
@@ -48,5 +47,4 @@ public:
     void receive(boost::asio::const_buffer msg, socket_endpoint src) override;
 };
 
-} // comm namespace
-} // uia namespace
+} // uia::comm namespace

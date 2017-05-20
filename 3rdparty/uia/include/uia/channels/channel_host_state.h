@@ -11,8 +11,7 @@
 #include "arsenal/algorithm.h"
 #include "uia/forward_ptrs.h"
 
-namespace uia {
-namespace comm {
+namespace uia::comm {
 
 using packet_magic_t = uint64_t;
 
@@ -49,7 +48,7 @@ public:
 
     virtual void unbind_receiver(packet_magic_t magic) { receivers_.erase(magic); }
 
-    virtual bool has_receiver_for(packet_magic_t magic) { return contains(receivers_, magic); }
+    virtual bool has_receiver_for(packet_magic_t magic) { return arsenal::contains(receivers_, magic); }
 
     /**
      * Find and return a receiver for given control channel magic value.
@@ -58,5 +57,4 @@ public:
     /*@}*/
 };
 
-} // comm namespace
-} // uia namespace
+} // uia::comm namespace

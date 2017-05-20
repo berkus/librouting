@@ -10,8 +10,7 @@
 #include "uia/comm/socket_endpoint.h"
 #include "uia/comm/socket.h"
 
-namespace uia {
-namespace comm {
+namespace uia::comm {
 
 //=================================================================================================
 // socket_endpoint
@@ -27,5 +26,4 @@ socket_endpoint::send(const char *data, int size) const
     return false;
 }
 
-} // comm namespace
-} // uia namespace
+} // uia::comm namespace

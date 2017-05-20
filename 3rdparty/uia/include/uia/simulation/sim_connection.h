@@ -11,8 +11,7 @@
 #include "uia/comm/socket_endpoint.h"
 #include "uia/timer.h"
 
-namespace uia {
-namespace simulation {
+namespace uia::simulation {
 
 class simulator;
 class sim_host;
@@ -73,5 +72,4 @@ private:
     boost::posix_time::ptime uplink_arrival_time_, downlink_arrival_time_;
 };
 
-} // simulation namespace
-} // sss namespace
+} // uis::simulation namespace

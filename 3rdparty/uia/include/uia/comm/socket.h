@@ -16,8 +16,7 @@
 #include "uia/comm/socket_endpoint.h"
 #include "uia/comm/socket_host_interface.h"
 
-namespace uia {
-namespace comm {
+namespace uia::comm {
 
 /**
  * Abstract base class for entity connecting two endpoints using some network.
@@ -145,5 +144,4 @@ protected:
     void receive(boost::asio::const_buffer msg, socket_endpoint const& src);
 };
 
-} // comm namespace
-} // uia namespace
+} // uia::comm namespace

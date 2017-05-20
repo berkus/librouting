@@ -17,8 +17,7 @@
 #include "uia/timer.h"
 #include "uia/forward_ptrs.h"
 
-namespace uia {
-namespace negotiation {
+namespace uia::negotiation {
 
 /**
  * Key exchange initiator maintains host state with respect to initiated key exchanges.
@@ -120,5 +119,4 @@ public:
     completion_signal on_completed;
 };
 
-} // negotiation namespace
-} // uia namespace
+} // uia::negotiation namespace

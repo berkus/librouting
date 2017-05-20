@@ -10,8 +10,7 @@
 
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 
-namespace uia {
-namespace async {
+namespace uia::async {
 
 class timer;
 
@@ -50,5 +49,4 @@ public:
     void timeout();
 };
 
-} // async namespace
-} // uia namespace
+} // uia::async namespace

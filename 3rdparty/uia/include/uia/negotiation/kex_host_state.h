@@ -14,8 +14,7 @@
 #include "uia/comm/socket_endpoint.h"
 #include "uia/forward_ptrs.h"
 
-namespace uia {
-namespace negotiation {
+namespace uia::negotiation {
 
 /**
  * Mixin for the host state that manages the key exchange state.
@@ -47,5 +46,4 @@ public:
     }
 };
 
-} // negotiation namespace
-} // uia namespace
+} // uia::negotiation namespace

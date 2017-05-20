@@ -13,8 +13,7 @@
 #include "uia/host.h"
 #include "uia/comm/socket.h"
 
-namespace uia {
-namespace simulation {
+namespace uia::simulation {
 
 class simulator;
 class sim_packet;
@@ -90,5 +89,4 @@ public:
     std::vector<uia::comm::endpoint> local_endpoints();
 };
 
-} // simulation namespace
-} // sss namespace
+} // uia::simulation namespace

@@ -11,8 +11,7 @@
 #include "uia/comm/socket.h"
 #include "uia/timer.h"
 
-namespace uia {
-namespace simulation {
+namespace uia::simulation {
 
 class simulator;
 class sim_host;
@@ -41,5 +40,4 @@ public:
     boost::posix_time::ptime arrival_time() const { return arrival_time_; }
 };
 
-} // simulation namespace
-} // sss namespace
+} // uia::simulation namespace
