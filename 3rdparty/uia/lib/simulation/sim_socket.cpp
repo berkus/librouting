@@ -68,7 +68,7 @@ sim_socket::unbind()
 // Target address must be routable to in order to send.
 // Find the destination host in the "routing table" (a simple list of neighbors).
 bool
-sim_socket::send(uia::comm::endpoint ep, const char* data, size_t size)
+sim_socket::send(uia::comm::endpoint ep, char const* data, size_t size)
 {
     assert(port_ > 0);
 

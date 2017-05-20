@@ -101,7 +101,7 @@ identity_host_state::set_host_identity(peer_identity const& ident)
 }
 
 void
-identity_host_state::init_identity(settings_provider* settings)
+identity_host_state::init_identity(arsenal::settings_provider* settings)
 {
     if (host_identity_.has_private_key())
         return; // Already initialized.
