@@ -8,7 +8,7 @@
 //
 #include "uia/simulation/sim_connection.h"
 #include "uia/simulation/sim_host.h"
-#include "arsenal/logging.h"
+#include <boost/log/trivial.hpp>
 #include <boost/format.hpp>
 
 using namespace std;

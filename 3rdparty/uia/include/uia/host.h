@@ -8,7 +8,6 @@
 //
 #pragma once
 
-#include "arsenal/logging.h"
 #include "uia/peer_identity.h"
 #include "uia/timer.h"
 #include "uia/comm/socket_protocol.h"

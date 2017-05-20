@@ -9,7 +9,7 @@
 #include "uia/comm/platform.h"
 #include <boost/asio.hpp>
 #include <algorithm>
-#include "arsenal/logging.h"
+#include <boost/log/trivial.hpp>
 #include "arsenal/byte_array.h"
 
 using namespace std;

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <iostream>
-#include "arsenal/logging.h"
+#include <boost/log/trivial.hpp>
 #include "uia/simulation/simulator.h"
 #include "uia/simulation/sim_host.h"
 #include "uia/simulation/sim_socket.h"

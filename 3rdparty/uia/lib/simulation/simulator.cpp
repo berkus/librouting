@@ -8,7 +8,7 @@
 //
 #include "uia/simulation/simulator.h"
 #include "uia/simulation/sim_timer_engine.h"
-#include "arsenal/logging.h"
+#include <boost/log/trivial.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace uia {

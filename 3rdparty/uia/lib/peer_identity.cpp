@@ -7,8 +7,8 @@
 // (See file LICENSE_1_0.txt or a copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 #include "uia/peer_identity.h"
-#include "arsenal/logging.h"
 #include "arsenal/settings_provider.h"
+#include <boost/log/trivial.hpp>
 
 using namespace std;
 

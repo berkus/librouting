@@ -7,7 +7,6 @@
 // (See file LICENSE_1_0.txt or a copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 #include "uia/comm/platform.h"
-#include "arsenal/logging.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <ifaddrs.h>
@@ -15,6 +14,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <boost/asio.hpp>
+#include <boost/log/trivial.hpp>
 #include <algorithm>
 
 using namespace std;

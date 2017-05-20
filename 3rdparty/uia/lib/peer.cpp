@@ -10,7 +10,7 @@
 #include "uia/host.h"
 #include "uia/channels/socket_channel.h"
 #include "uia/negotiation/initiator.h"
-#include "arsenal/logging.h"
+#include <boost/log/trivial.hpp>
 
 namespace uia {
 

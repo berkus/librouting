@@ -7,12 +7,12 @@
 // (See file LICENSE_1_0.txt or a copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 #include "uia/comm/socket.h"
-#include "arsenal/logging.h"
 #include "arsenal/algorithm.h"
 #include "arsenal/subrange.h"
 #include "uia/comm/packet_receiver.h" // FIXME
 #include "uia/comm/socket_protocol.h"
 #include "uia/host.h"
+#include <boost/log/trivial.hpp>
 
 using namespace std;
 using namespace boost;

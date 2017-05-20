@@ -8,8 +8,8 @@
 //
 #include "uia/comm/packet_receiver.h"
 #include "uia/comm/socket_host_interface.h"
-#include "arsenal/logging.h"
 #include "uia/host.h"
+#include <boost/log/trivial.hpp>
 
 using namespace std;
 

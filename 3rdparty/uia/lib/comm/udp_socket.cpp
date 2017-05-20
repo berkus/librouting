@@ -8,8 +8,8 @@
 //
 #include "uia/comm/udp_socket.h"
 #include "uia/comm/platform.h"
-#include "arsenal/logging.h"
 #include "uia/host.h" //for get_io_service() on host
+#include <boost/log/trivial.hpp>
 #include <memory>
 
 using namespace std;

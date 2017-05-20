@@ -6,14 +6,14 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See file LICENSE_1_0.txt or a copy at http://www.boost.org/LICENSE_1_0.txt)
 //
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_real.hpp>
 #include "uia/simulation/simulator.h"
 #include "uia/simulation/sim_packet.h"
 #include "uia/simulation/sim_host.h"
 #include "uia/simulation/sim_socket.h"
 #include "uia/simulation/sim_connection.h"
-#include "arsenal/logging.h"
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_real.hpp>
+#include <boost/log/trivial.hpp>
 
 namespace uia {
 namespace simulation {

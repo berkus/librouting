@@ -9,7 +9,7 @@
 #include "uia/negotiation/kex_host_state.h"
 #include "uia/negotiation/responder.h"
 #include "uia/negotiation/constants.h"
-#include "arsenal/logging.h"
+#include <boost/log/trivial.hpp>
 
 namespace uia::negotiation {
 
