@@ -167,6 +167,8 @@ public:
      * Send a network packet and return success status.
      * @param  pkt Network packet to send
      * @return     true if socket call succeeded. The packet may actually have not been sent.
+     *
+     * @todo replace packet with asio_buffer
      */
     inline bool send(arsenal::byte_array const& pkt) const
     {
