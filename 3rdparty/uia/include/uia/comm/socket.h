@@ -94,7 +94,7 @@ public:
      * @param msg the packet data.
      * @return true if send was successful.
      */
-    inline bool send(endpoint ep, byte_array const& msg)
+    inline bool send(endpoint ep, arsenal::byte_array const& msg)
     {
         return send(ep, msg.const_data(), msg.size());
     }

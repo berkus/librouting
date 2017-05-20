@@ -11,9 +11,7 @@
 #include "routing/private/registry_record.h"
 #include "routing/registration_server.h"
 
-namespace uia {
-namespace routing {
-namespace internal {
+namespace uia::routing::internal {
 
 constexpr uint32_t registry_record::timeout_seconds;
 
@@ -25,7 +23,7 @@ registry_record::registry_record(registration_server& srv,
                                  const byte_array& id,
                                  const byte_array& nhi,
                                  const uia::comm::endpoint& ep,
-                                 const byte_array& info)
+                                 byte_array const& info)
     : srv(srv)
     , id(id)
     , nhi(nhi)
@@ -45,6 +43,4 @@ registry_record::~registry_record()
     BOOST_LOG_TRIVIAL(debug) << "~registry_record: deleting record for " << uia::peer_identity(id.as_string());
 }
 
-} // internal namespace
-} // routing namespace
-} // uia namespace
+} // uia::routing::internal namespace

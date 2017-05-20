@@ -10,10 +10,9 @@
 
 #include "arsenal/byte_array.h"
 #include "uia/comm/socket_endpoint.h"
-#include "sss/internal/timer.h" // @todo move sss::async to async
+#include "uia/timer.h" // @todo move sss::async to async
 
-namespace uia {
-namespace routing {
+namespace uia::routing {
 
 class registration_server;
 
@@ -29,21 +28,20 @@ class registry_record
     static constexpr uint32_t timeout_seconds = (1 * 60 * 60); // Records last 1 hour
 
     registration_server& srv;
-    byte_array const id;
-    byte_array const nhi;
+    arsenal::byte_array const id;
+    arsenal::byte_array const nhi;
     uia::comm::endpoint const ep;
-    byte_array const profile_info_;
-    sss::async::timer timer_;
+    arsenal::byte_array const profile_info_;
+    uia::async::timer timer_;
 
     registry_record(registration_server& srv,
-                    byte_array const& id,
-                    byte_array const& nhi,
+                    arsenal::byte_array const& id,
+                    arsenal::byte_array const& nhi,
                     uia::comm::endpoint const& ep,
-                    byte_array const& info); // ep based for old regserver
+                    arsenal::byte_array const& info); // ep based for old regserver
     // @todo Add stream-based ctor for new regserver
     ~registry_record();
 };
 
 } // internal namespace
-} // routing namespace
-} // uia namespace
+} // uia::routing namespace

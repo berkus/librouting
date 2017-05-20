@@ -10,6 +10,8 @@
 
 #include "uia/comm/socket.h"
 #include "uia/timer.h"
+#include "arsenal/byte_array.h"
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 
 namespace uia::simulation {
 
@@ -24,7 +26,7 @@ class sim_packet : public std::enable_shared_from_this<sim_packet>
     uia::comm::endpoint from_, to_;
     std::shared_ptr<sim_host> target_host_;
     std::shared_ptr<sim_connection> pipe_;
-    byte_array data_;
+    arsenal::byte_array data_;
     async::timer timer_;
 
     void arrive();
@@ -32,7 +34,7 @@ class sim_packet : public std::enable_shared_from_this<sim_packet>
 public:
     sim_packet(std::shared_ptr<sim_host> source_host, uia::comm::endpoint const& src,
         std::shared_ptr<sim_connection> pipe, uia::comm::endpoint const& dst,
-        byte_array data);
+        arsenal::byte_array data);
     ~sim_packet();
 
     void send();

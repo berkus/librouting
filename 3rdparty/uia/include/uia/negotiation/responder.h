@@ -10,6 +10,7 @@
 
 #include <set>
 #include <boost/signals2/signal.hpp>
+#include "arsenal/byte_array.h"
 #include "sodiumpp/sodiumpp.h"
 #include "uia/peer_identity.h"
 #include "uia/comm/socket_endpoint.h"
@@ -81,7 +82,7 @@ protected:
      */
     virtual bool is_initiator_acceptable(comm::socket_endpoint const& initiator_ep,
                                          peer_identity const& initiator_eid,
-                                         byte_array const& user_data);
+                                         arsenal::byte_array const& user_data);
 
     /**
      * responder calls this to create a channel requested by a client.

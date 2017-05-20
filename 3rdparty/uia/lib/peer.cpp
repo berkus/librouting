@@ -12,6 +12,8 @@
 #include "uia/negotiation/initiator.h"
 #include <boost/log/trivial.hpp>
 
+using arsenal::contains;
+
 namespace uia {
 
 //=================================================================================================

@@ -13,7 +13,11 @@
 #include "comm/socket_endpoint.h"
 #include "sodiumpp/sodiumpp.h"
 
+namespace arsenal {
+
 class settings_provider;
+
+} // arsenal namespace
 
 namespace uia {
 
@@ -62,7 +66,7 @@ public:
      * @param proquint the binary identifier in proquint text encoding.
      */
     inline peer_identity(std::string proquint, proquint_tag)
-        : peer_identity(encode::from_proquint(proquint))
+        : peer_identity(arsenal::encode::from_proquint(proquint))
     {
     }
 
@@ -143,7 +147,7 @@ public:
     void clear_key();
 
     // Return proquint-encoded public ID
-    inline std::string to_string() const { return encode::to_proquint(id_); }
+    inline std::string to_string() const { return arsenal::encode::to_proquint(id_); }
 };
 
 inline bool
@@ -200,12 +204,12 @@ public:
      *
      * @param settings the settings registry to use for persistence.
      */
-    void init_identity(settings_provider* settings);
+    void init_identity(arsenal::settings_provider* settings);
 };
 
 } // uia namespace
 
-namespace flurry {
+namespace arsenal::flurry {
 
 inline flurry::oarchive&
 operator<<(flurry::oarchive& oa, uia::peer_identity const& id)
@@ -223,7 +227,7 @@ operator>>(flurry::iarchive& ia, uia::peer_identity& id)
     return ia;
 }
 
-} // flurry namespace
+} // arsenal::flurry namespace
 
 // Hash specialization for peer_id
 namespace std {

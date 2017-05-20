@@ -15,6 +15,7 @@
 #include "uia/comm/socket_host_state.h"
 #include "uia/channels/channel_host_state.h"
 #include "uia/asio_host_state.h"
+#include "arsenal/settings_provider.h"
 
 namespace uia {
 
@@ -58,10 +59,10 @@ public:
      * If the desired UDP port cannot be bound, just picks an arbitrary UDP port instead
      * and updates settings with this new value.
      */
-    static host_ptr create(settings_provider* settings,
+    static host_ptr create(arsenal::settings_provider* settings,
                            uint16_t default_port = uia::comm::DEFAULT_PORT);
     // Overload with shared pointer to settings.
-    static inline host_ptr create(std::shared_ptr<settings_provider> settings,
+    static inline host_ptr create(std::shared_ptr<arsenal::settings_provider> settings,
                                   uint16_t default_port = uia::comm::DEFAULT_PORT)
     {
         return create(settings.get(), default_port);

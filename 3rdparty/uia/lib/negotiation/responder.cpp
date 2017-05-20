@@ -43,7 +43,7 @@ socket_send(uia::comm::socket_endpoint const& target, T const& msg)
     std::lock_guard<std::mutex> guard(mtx);
     char stack[1280] = {0}; // @todo Use a send packet pool
     boost::asio::mutable_buffer buf(stack, 1280);
-    auto end = fusionary::write(buf, msg);
+    auto end = arsenal::fusionary::write(buf, msg);
     return target.send(boost::asio::buffer_cast<const char*>(buf),
                        boost::asio::buffer_size(buf) - boost::asio::buffer_size(end));
 }
@@ -85,7 +85,7 @@ responder::responder(host_ptr host)
 bool
 responder::is_initiator_acceptable(uia::comm::socket_endpoint const& initiator_ep,
                                    uia::peer_identity const& initiator_eid,
-                                   byte_array const& user_data)
+                                   arsenal::byte_array const& user_data)
 {
     return true;
 }
@@ -131,7 +131,7 @@ responder::got_hello(boost::asio::const_buffer msg, uia::comm::socket_endpoint c
 {
     logger::debug() << "Responder got hello packet from " << src;
     uia::packets::hello_packet_header hello;
-    fusionary::read(hello, msg);
+    arsenal::fusionary::read(hello, msg);
 
     string clientKey = as_string(hello.initiator_shortterm_public_key);
     string nonce     = HELLO_NONCE_PREFIX + as_string(hello.nonce);
@@ -182,7 +182,7 @@ responder::got_initiate(boost::asio::const_buffer buf, uia::comm::socket_endpoin
 {
     logger::debug() << "Responder got initiate packet from " << src;
     uia::packets::initiate_packet_header init;
-    buf = fusionary::read(init, buf);
+    buf = arsenal::fusionary::read(init, buf);
 
     // Try to open the cookie
     string nonce = MINUTEKEY_NONCE_PREFIX + as_string(init.responder_cookie.nonce);
@@ -191,11 +191,11 @@ responder::got_initiate(boost::asio::const_buffer buf, uia::comm::socket_endpoin
         crypto_secretbox_open(as_string(init.responder_cookie.box), nonce, minute_key.get());
 
     // Check that cookie and client match
-    if (as_string(init.initiator_shortterm_public_key) != string(subrange(cookie, 0, 32)))
+    if (as_string(init.initiator_shortterm_public_key) != string(arsenal::subrange(cookie, 0, 32)))
         return warning("cookie and client mismatch");
 
     // Extract server short-term key
-    string secret_k = subrange(cookie, 32, 32);
+    string secret_k = arsenal::subrange(cookie, 32, 32);
     string public_k = crypto_scalarmult_base(secret_k);
     short_term_key = secret_key(public_k, secret_k);
 
@@ -207,13 +207,13 @@ responder::got_initiate(boost::asio::const_buffer buf, uia::comm::socket_endpoin
     string msg = unseal.unbox(as_string(init.box));
 
     // Extract client long-term public key and check the vouch subpacket.
-    string client_long_term_key = subrange(msg, 0, 32);
+    string client_long_term_key = arsenal::subrange(msg, 0, 32);
 
-    string vouchNonce = VOUCH_NONCE_PREFIX + string(subrange(msg, 32, 16));
+    string vouchNonce = VOUCH_NONCE_PREFIX + string(arsenal::subrange(msg, 32, 16));
 
     unboxer<recv_nonce> vouchUnseal(
         client_long_term_key, host_->host_identity().secret_key(), vouchNonce);
-    string vouch = vouchUnseal.unbox(subrange(msg, 48, 48));
+    string vouch = vouchUnseal.unbox(arsenal::subrange(msg, 48, 48));
 
     if (vouch != as_string(init.initiator_shortterm_public_key))
         return warning("vouch subpacket invalid");

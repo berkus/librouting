@@ -12,8 +12,7 @@
 #include "uia/peer_identity.h"
 #include "sss/host.h"
 
-namespace uia {
-namespace routing {
+namespace uia::routing {
 
 class client_profile;
 class client;
@@ -101,5 +100,4 @@ public:
     }
 };
 
-} // routing namespace
-} // uia namespace
+} // uia::routing namespace

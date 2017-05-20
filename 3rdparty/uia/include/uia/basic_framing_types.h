@@ -91,7 +91,7 @@ as_string(std::array<uint8_t, N> const& a)
 }
 
 inline std::string
-as_string(rest_t const& a)
+as_string(arsenal::fusionary::rest_t const& a)
 {
     return a.data;
 }

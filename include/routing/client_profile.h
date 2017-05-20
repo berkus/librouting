@@ -18,8 +18,7 @@
 #include "arsenal/underlying.h"
 #include "arsenal/algorithm.h"
 
-namespace uia {
-namespace routing {
+namespace uia::routing {
 
 // Client profile represents a client-specified block of information
 // about itself to be made publicly available to other clients
@@ -54,7 +53,7 @@ public:
     // Constructors
     inline client_profile() = default;
     inline client_profile(client_profile const& other) = default;
-    inline client_profile(byte_array const& data) { deflurry(data); }
+    inline client_profile(arsenal::byte_array const& data) { deflurry(data); }
 
     inline client_profile& operator =(client_profile const& other) = default;
     inline client_profile& operator =(client_profile&& other) = default;
@@ -73,23 +72,23 @@ public:
     }
 
     inline
-    byte_array
+    arsenal::byte_array
     attribute(attribute_tag tag) const
     {
-        if (!contains(attributes_, to_underlying(tag))) {
-            return byte_array();
+        if (!contains(attributes_, arsenal::to_underlying(tag))) {
+            return arsenal::byte_array();
         }
-        return attributes_.at(to_underlying(tag));
+        return attributes_.at(arsenal::to_underlying(tag));
     }
     inline
     void
-    set_attribute(attribute_tag tag, byte_array const& value) {
-        attributes_[to_underlying(tag)] = value;
+    set_attribute(attribute_tag tag, arsenal::byte_array const& value) {
+        attributes_[arsenal::to_underlying(tag)] = value;
     }
     inline
     void
     remove(attribute_tag tag) {
-        set_attribute(tag, byte_array());
+        set_attribute(tag, arsenal::byte_array());
     }
 
     /**@}*/
@@ -100,14 +99,14 @@ public:
     std::string
     string(attribute_tag tag) const
     {
-        byte_array data = attribute(tag);
+        arsenal::byte_array data = attribute(tag);
         return std::string(data.begin(), data.end());
     }
 
     inline
     void
     set_string(attribute_tag tag, std::string const& value) {
-        set_attribute(tag, byte_array::wrap(value.c_str(), value.size()));
+        set_attribute(tag, arsenal::byte_array::wrap(value.c_str(), value.size()));
     }
     /**@}*/
 
@@ -175,44 +174,47 @@ public:
     void set_endpoints(std::vector<uia::comm::endpoint> const& endpoints);
     /**@}*/
 
-    inline void enflurry(flurry::oarchive& oa) const {
+    inline void enflurry(arsenal::flurry::oarchive& oa) const {
         oa << attributes_;
     }
-    inline byte_array enflurry() const
+    inline arsenal::byte_array enflurry() const
     {
-        byte_array out;
+        arsenal::byte_array out;
         {
-            byte_array_owrap<flurry::oarchive> write(out);
+            arsenal::byte_array_owrap<arsenal::flurry::oarchive> write(out);
             write.archive() << attributes_;
         }
         return out;
     }
-    inline void deflurry(flurry::iarchive& ia)
+    inline void deflurry(arsenal::flurry::iarchive& ia)
     {
         attributes_.clear();
         ia >> attributes_;
     }
-    inline void deflurry(byte_array const& data)
+    inline void deflurry(arsenal::byte_array const& data)
     {
         attributes_.clear();
-        byte_array_iwrap<flurry::iarchive> read(data);
+        arsenal::byte_array_iwrap<arsenal::flurry::iarchive> read(data);
         read.archive() >> attributes_;
     }
 private:
-    std::unordered_map<std::underlying_type<attribute_tag>::type, byte_array> attributes_;
+    std::unordered_map<std::underlying_type<attribute_tag>::type, arsenal::byte_array> attributes_;
 };
 
-inline flurry::oarchive& operator << (flurry::oarchive& oa, client_profile const& cp)
+inline
+arsenal::flurry::oarchive&
+operator << (arsenal::flurry::oarchive& oa, client_profile const& cp)
 {
     cp.enflurry(oa);
     return oa;
 }
 
-inline flurry::iarchive& operator >> (flurry::iarchive& ia, client_profile& cp)
+inline
+arsenal::flurry::iarchive&
+operator >> (arsenal::flurry::iarchive& ia, client_profile& cp)
 {
     cp.deflurry(ia);
     return ia;
 }
 
-} // routing namespace
-} // uia namespace
+} // uia::routing namespace

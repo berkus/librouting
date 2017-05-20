@@ -46,7 +46,7 @@ BOOST_FUSION_DEFINE_STRUCT(
     (eckey_t, initiator_shortterm_public_key)
     (uia::packets::responder_cookie, responder_cookie)
     (cnonce8_t, nonce)
-    (rest_t, box) // variable size box -- see struct below
+    (arsenal::fusionary::rest_t, box) // variable size box -- see struct below
 );
 
 BOOST_FUSION_DEFINE_STRUCT(
@@ -54,7 +54,7 @@ BOOST_FUSION_DEFINE_STRUCT(
     (eckey_t, initiator_longterm_public_key)
     (cnonce16_t, vouch_nonce)
     (box48_t, vouch)
-    (rest_t, box) // variable size data containing initial frames
+    (arsenal::fusionary::rest_t, box) // variable size data containing initial frames
 );
 
 BOOST_FUSION_DEFINE_STRUCT(
@@ -62,7 +62,7 @@ BOOST_FUSION_DEFINE_STRUCT(
     (magic::message_packet, magic)
     (eckey_t, shortterm_public_key)
     (cnonce8_t, nonce)
-    (rest_t, box) // variable size box containing message
+    (arsenal::fusionary::rest_t, box) // variable size box containing message
 );
 // clang-format on
 

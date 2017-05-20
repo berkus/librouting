@@ -20,10 +20,13 @@
 #include "uia/comm/endpoint_set.h"
 #include "uia/forward_ptrs.h"
 
+namespace arsenal {
+
 class settings_provider;
 
-namespace uia {
-namespace comm {
+} // arsenal namespace
+
+namespace uia::comm {
 
 /**
  * This mixin class encapsulates socket-related part of host state.
@@ -65,7 +68,7 @@ protected:
      *                     actually used.
      * @param default_port Default port number to bind to if 'port' key not found in @a settings.
      */
-    void init_socket(settings_provider* settings,
+    void init_socket(arsenal::settings_provider* settings,
                      uint16_t default_port = uia::comm::DEFAULT_PORT);
 
 public:
@@ -109,5 +112,4 @@ public:
     active_sockets_changed_signal on_active_sockets_changed;
 };
 
-} // comm namespace
-} // uia namespace
+} // uia::comm namespace

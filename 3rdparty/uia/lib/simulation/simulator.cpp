@@ -11,8 +11,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-namespace uia {
-namespace simulation {
+namespace uia::simulation {
 
 simulator::simulator()
     : current_clock_(boost::posix_time::from_iso_string("20000101T000000"))
@@ -89,5 +88,4 @@ void simulator::dequeue_timer(sim_timer_engine* timer)
     }
 }
 
-} // simulation namespace
-} // sss namespace
+} // uia::simulation namespace

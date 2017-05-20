@@ -17,8 +17,7 @@ namespace sss {
 class host;
 } // sss namespace
 
-namespace uia {
-namespace routing {
+namespace uia::routing {
 
 class client;
 
@@ -38,13 +37,12 @@ public:
 
     void add_routing_client(client* c);
     void remove_routing_client(client* c);
-    void insert_nonce(byte_array const& nonce, client* c);
-    void clear_nonce(byte_array const& nonce);
+    void insert_nonce(arsenal::byte_array const& nonce, client* c);
+    void clear_nonce(arsenal::byte_array const& nonce);
 
     using routing_client_signal = boost::signals2::signal<void (client*)>;
     routing_client_signal on_routing_client_created;
     routing_client_signal on_routing_client_deleted;
 };
 
-} // routing namespace
-} // uia namespace
+} // uia::routing namespace

@@ -30,7 +30,7 @@ socket_send(uia::comm::socket_endpoint const& target, T const& msg)
     std::lock_guard<std::mutex> lock(mtx);
     char stack[1280] = {0}; // @todo Use a send packet pool
     boost::asio::mutable_buffer buf(stack, 1280);
-    auto end = fusionary::write(buf, msg);
+    auto end = arsenal::fusionary::write(buf, msg);
     return target.send(boost::asio::buffer_cast<const char*>(buf),
                        boost::asio::buffer_size(buf) - boost::asio::buffer_size(end));
     // @fixme send() buf might outlive the scope of this func
@@ -38,8 +38,7 @@ socket_send(uia::comm::socket_endpoint const& target, T const& msg)
 
 } // anonymous namespace
 
-namespace uia {
-namespace negotiation {
+namespace uia::negotiation {
 
 //=================================================================================================
 // initiator
@@ -165,7 +164,7 @@ initiator::got_cookie(boost::asio::const_buffer buf, uia::comm::socket_endpoint 
         return; // not our cookie!
 
     uia::packets::cookie_packet_header cookie;
-    fusionary::read(cookie, buf);
+    arsenal::fusionary::read(cookie, buf);
 
     // open cookie box
     string nonce = COOKIE_NONCE_PREFIX + as_string(cookie.nonce);
@@ -173,8 +172,8 @@ initiator::got_cookie(boost::asio::const_buffer buf, uia::comm::socket_endpoint 
     unboxer<recv_nonce> unseal(remote_id_.public_key(), short_term_secret_key, nonce);
     string open = unseal.unbox(as_string(cookie.box));
 
-    server_short_term_public_key = subrange(open, 0, 32);
-    minute_cookie_               = subrange(open, 32, 96);
+    server_short_term_public_key = arsenal::subrange(open, 0, 32);
+    minute_cookie_               = arsenal::subrange(open, 32, 96);
 
     // remember cookie for 1 minute
     minute_timer_.start();
@@ -219,8 +218,8 @@ initiator::send_initiate(std::string cookie, std::string payload)
     // Assemble initiate packet
     uia::packets::initiate_packet_header pkt;
     pkt.initiator_shortterm_public_key = as_array<32>(short_term_secret_key.pk.get());
-    pkt.responder_cookie.nonce         = as_array<16>(subrange(cookie, 0, 16));
-    pkt.responder_cookie.box           = as_array<80>(subrange(cookie, 16));
+    pkt.responder_cookie.nonce         = as_array<16>(arsenal::subrange(cookie, 0, 16));
+    pkt.responder_cookie.box           = as_array<80>(arsenal::subrange(cookie, 16));
 
     auto box_contents = host_->host_identity().secret_key().pk.get() + vouchSeal.nonce_sequential()
                         + vouch + payload;
@@ -234,5 +233,4 @@ initiator::send_initiate(std::string cookie, std::string payload)
     state_ = state::initiate;
 }
 
-} // negotiation namespace
-} // uia namespace
+} // uia::negotiation namespace

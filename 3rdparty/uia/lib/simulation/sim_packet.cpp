@@ -14,9 +14,11 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_real.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
-namespace uia {
-namespace simulation {
+using arsenal::byte_array;
+
+namespace uia::simulation {
 
 static const int packet_overhead = 32; // Bytes of link/inet overhead per packet
 
@@ -124,5 +126,4 @@ sim_packet::arrive()
     self.reset(); // We are ought to be deleted now.
 }
 
-} // simulation namespace
-} // sss namespace
+} // uia::simulation namespace

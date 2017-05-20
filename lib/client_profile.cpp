@@ -12,9 +12,9 @@
 #include "routing/client_profile.h"
 
 using namespace std;
+using namespace arsenal;
 
-namespace uia {
-namespace routing {
+namespace uia::routing {
 
 vector<string>
 client_profile::keywords() const
@@ -66,5 +66,4 @@ client_profile::set_endpoints(vector<uia::comm::endpoint> const& endpoints)
     set_attribute(attribute_tag::endpoints, buf);
 }
 
-} // routing namespace
-} // uia namespace
+} // uia::routing namespace

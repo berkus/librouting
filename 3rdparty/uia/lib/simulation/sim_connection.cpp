@@ -10,11 +10,11 @@
 #include "uia/simulation/sim_host.h"
 #include <boost/log/trivial.hpp>
 #include <boost/format.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 using namespace std;
 
-namespace uia {
-namespace simulation {
+namespace uia::simulation {
 
 //=================================================================================================
 // This set of connection data comes straight from SST.
@@ -268,5 +268,4 @@ sim_connection::arrival_time_for(std::shared_ptr<sim_host> host)
     throw std::runtime_error("Target host not on this connection!");
 }
 
-} // simulation namespace
-} // sss namespace
+} // uia::simulation namespace

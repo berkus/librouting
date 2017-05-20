@@ -13,8 +13,7 @@
 
 using namespace std;
 
-namespace uia {
-namespace simulation {
+namespace uia::simulation {
 
 sim_socket::sim_socket(sim_host_ptr host)
     : uia::comm::socket(host)
@@ -84,7 +83,7 @@ sim_socket::send(uia::comm::endpoint ep, const char* data, size_t size)
     sim_connection_ptr pipe(host_->connection_at(src));
     assert(pipe);
 
-    make_shared<sim_packet>(host_, src, pipe, ep, byte_array(data, size))->send();
+    make_shared<sim_packet>(host_, src, pipe, ep, arsenal::byte_array(data, size))->send();
 
     return true;
 }
@@ -99,5 +98,4 @@ sim_socket::local_endpoints()
     return result;
 }
 
-} // simulation namespace
-} // sss namespace
+} // uia::simulation namespace

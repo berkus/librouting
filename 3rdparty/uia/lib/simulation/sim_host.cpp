@@ -16,9 +16,9 @@
 #include <boost/make_unique.hpp>
 
 using namespace std;
+using arsenal::contains;
 
-namespace uia {
-namespace simulation {
+namespace uia::simulation {
 
 shared_ptr<sim_host>
 sim_host::create(shared_ptr<simulator> sim)
@@ -166,5 +166,4 @@ sim_host::local_endpoints()
     return eps;
 }
 
-} // simulation namespace
-} // sss namespace
+} // uia::simulation namespace

@@ -11,6 +11,7 @@
 #include <boost/log/trivial.hpp>
 
 using namespace std;
+using arsenal::byte_array;
 
 namespace uia {
 

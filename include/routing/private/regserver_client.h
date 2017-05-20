@@ -16,8 +16,7 @@
 #include "routing/routing_client.h"
 #include "sss/internal/timer.h"
 
-namespace uia {
-namespace routing {
+namespace uia::routing {
 
 class routing_receiver;
 
@@ -169,5 +168,4 @@ private:
 };
 
 } // internal namespace
-} // routing namespace
-} // uia namespace
+} // uia::routing namespace

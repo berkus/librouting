@@ -35,14 +35,14 @@ class socket_channel : public std::enable_shared_from_this<socket_channel>
      * @param  pkt    Packet to encode.
      * @return        Encoded and authenticated packet.
      */
-    byte_array transmit_encode(boost::asio::mutable_buffer pkt);
+    arsenal::byte_array transmit_encode(boost::asio::mutable_buffer pkt);
     /**
      * Decode packet.
      * @param  in     Incoming packet.
      * @param  out    Decrypted packet.
      * @return        true if packet is verified to be authentic and decoded.
      */
-    bool receive_decode(boost::asio::const_buffer in, byte_array& out);
+    bool receive_decode(boost::asio::const_buffer in, arsenal::byte_array& out);
 
 public:
     socket_channel(sodiumpp::secret_key local_short,
@@ -168,7 +168,7 @@ public:
      * @param  pkt Network packet to send
      * @return     true if socket call succeeded. The packet may actually have not been sent.
      */
-    inline bool send(byte_array const& pkt) const
+    inline bool send(arsenal::byte_array const& pkt) const
     {
         assert(active_);
         if (auto s = socket_.lock()) {

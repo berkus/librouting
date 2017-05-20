@@ -13,8 +13,7 @@
 #include "sss/server.h"
 #include "sss/host.h"
 
-namespace uia {
-namespace routing {
+namespace uia::routing {
 
 /**
  * Implements regserver protocol as part of SSS stream.
@@ -71,5 +70,5 @@ private:
     internal::registry_record*
     find_caller(const comm::endpoint& ep, const byte_array& idi, const byte_array& nhi);
 };
-}
-}
+
+} // uia::routing namespace

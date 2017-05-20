@@ -11,6 +11,7 @@
 #include <boost/utility/string_ref.hpp>
 
 using namespace std;
+using arsenal::contains;
 
 namespace uia {
 namespace comm {
