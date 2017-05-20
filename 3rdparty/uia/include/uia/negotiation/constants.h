@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace magic {
 using hello_packet    = std::integral_constant<uint64_t, 0x71564e7135784c68>; // "qVNq5xLh"
 using cookie_packet   = std::integral_constant<uint64_t, 0x726c33416e6d786b>; // "rl3Anmxk"
