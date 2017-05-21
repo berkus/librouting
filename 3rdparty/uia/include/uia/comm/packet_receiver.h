@@ -59,7 +59,7 @@ public:
      * @param msg Data packet.
      * @param src Origin endpoint.
      */
-    virtual void receive(boost::asio::const_buffer msg, socket_endpoint src) = 0;
+    virtual void receive(boost::asio::const_buffer msg, socket_endpoint const& src) = 0;
 };
 
 } // uia::comm namespace

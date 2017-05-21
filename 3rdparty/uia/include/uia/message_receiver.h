@@ -44,7 +44,7 @@ public:
      */
     void unbind_channel(std::string channel_key);
 
-    void receive(boost::asio::const_buffer msg, socket_endpoint src) override;
+    void receive(boost::asio::const_buffer msg, socket_endpoint const& src) override;
 };
 
 } // uia::comm namespace

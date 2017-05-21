@@ -58,7 +58,7 @@ public:
      * @param msg Data packet.
      * @param src Origin endpoint.
      */
-    void receive(boost::asio::const_buffer msg, comm::socket_endpoint src) override;
+    void receive(boost::asio::const_buffer msg, comm::socket_endpoint const& src) override;
 
     /**
      * Send a probe chunk to some network address,

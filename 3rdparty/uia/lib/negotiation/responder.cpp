@@ -103,7 +103,7 @@ responder::create_channel(sodiumpp::secret_key local_short,
 }
 
 void
-responder::receive(boost::asio::const_buffer msg, uia::comm::socket_endpoint src)
+responder::receive(boost::asio::const_buffer msg, uia::comm::socket_endpoint const& src)
 {
     BOOST_LOG_TRIVIAL(debug) << "responder::receive " << dec << boost::asio::buffer_size(msg)
                     << " bytes from " << src;

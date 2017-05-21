@@ -54,7 +54,7 @@ string_view(boost::asio::const_buffer buf, size_t start_offset, size_t count = b
 }
 
 void
-message_receiver::receive(boost::asio::const_buffer msg, socket_endpoint src)
+message_receiver::receive(boost::asio::const_buffer msg, socket_endpoint const& src)
 {
     if (auto channel = channel_for(string_view(msg, 8, 32)).lock()) {
         return channel->receive(msg, src);
