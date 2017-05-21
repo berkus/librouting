@@ -1,0 +1,26 @@
+sudo: required
+dist: trusty
+
+language: cpp
+
+services: docker
+
+notifications:
+  recipients: berkus@metta.systems
+  email:
+    on_success: change
+    on_failure: always
+
+matrix:
+  include:
+    - os: linux
+      env: BUILD_TYPE=Debug
+#    - os: osx
+
+before_install:
+  - docker pull berkus/docker-cpp-ci:latest
+
+script:
+  - mkdir _build_
+  - docker run --rm -v $PWD:/repo -v ~/.travis:/travis berkus/docker-cpp-ci /bin/sh -c "cd /repo/_build_ && CC=clang CXX=clang++ cmake -G Ninja -DTRAVIS_CI=YES -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTING=ON .. && cmake --build . && ASAN_OPTIONS=alloc_dealloc_mismatch=0 ctest"
+
