@@ -11,6 +11,7 @@
 #include <set>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/signals2/signal.hpp>
+#include "arsenal/byte_array.h"
 #include "uia/peer_identity.h"
 #include "routing/client_profile.h"
 #include "routing/routing_client.h"
