@@ -14,7 +14,7 @@
 #include "uia/peer_identity.h"
 #include "routing/client_profile.h"
 #include "routing/routing_client.h"
-#include "sss/internal/timer.h"
+#include "uia/timer.h"
 
 namespace uia::routing {
 
@@ -67,12 +67,12 @@ private:
     client_profile inf;                          // Registration metadata
 
     // Registration process state
-    byte_array idi;  // Initiator's identity (i.e., mine)
-    byte_array ni;   // Initiator's nonce
-    byte_array nhi;  // Initiator's hashed nonce
-    byte_array chal; // Responder's challenge from Insert1 reply
-    byte_array key;  // Our encoded public key to send to server
-    byte_array sig;  // Our signature to send in Insert2
+    arsenal::byte_array idi;  // Initiator's identity (i.e., mine)
+    arsenal::byte_array ni;   // Initiator's nonce
+    arsenal::byte_array nhi;  // Initiator's hashed nonce
+    arsenal::byte_array chal; // Responder's challenge from Insert1 reply
+    arsenal::byte_array key;  // Our encoded public key to send to server
+    arsenal::byte_array sig;  // Our signature to send in Insert2
 
     // Outstanding lookups and searches for which we're awaiting replies.
     std::unordered_set<uia::peer_identity> lookups; // IDs we're doing lookups on
@@ -80,10 +80,10 @@ private:
     std::unordered_set<std::string> searches;       // Strings we're searching for
 
     // Retry state
-    sss::async::timer retry_timer_; // Retransmission timer
+    uia::async::timer retry_timer_; // Retransmission timer
     bool persist;                   // True if we should never give up
 
-    sss::async::timer rereg_timer_; // Counts lifetime of our reg entry
+    uia::async::timer rereg_timer_; // Counts lifetime of our reg entry
 
     // Error state
     std::string error_string_;
@@ -140,22 +140,22 @@ private:
     // Registration state machine
     void go_insert1();
     void send_insert1();
-    void got_insert1_reply(byte_array_iwrap<flurry::iarchive>& is);
+    void got_insert1_reply(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& is);
 
     void go_insert2();
     void send_insert2();
-    void got_insert2_reply(byte_array_iwrap<flurry::iarchive>& is);
+    void got_insert2_reply(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& is);
 
     void send_lookup(const uia::peer_identity& id, bool notify);
-    void got_lookup_reply(byte_array_iwrap<flurry::iarchive>& is, bool isnotify);
+    void got_lookup_reply(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& is, bool isnotify);
 
     void send_search(const std::string& text);
-    void got_search_reply(byte_array_iwrap<flurry::iarchive>& is);
+    void got_search_reply(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& is);
 
     void send_delete();
-    void got_delete_reply(byte_array_iwrap<flurry::iarchive>& is);
+    void got_delete_reply(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& is);
 
-    void send(const byte_array& msg);
+    void send(arsenal::byte_array const& msg);
 
 private:
     //==============

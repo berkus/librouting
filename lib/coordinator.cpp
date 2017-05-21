@@ -17,6 +17,7 @@
 
 using namespace std;
 using namespace uia::routing::internal;
+using arsenal::byte_array;
 
 namespace uia::routing {
 
