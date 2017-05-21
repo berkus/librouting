@@ -55,7 +55,7 @@ private:
     // Max time before rereg - 1 hr
     static const boost::posix_time::time_duration max_rereg;
 
-    sss::host* const host_; // Pointer to our per-host state
+    uia::host* const host_; // Pointer to our per-host state
 
     state state_;
     // DNS resolution info
@@ -93,10 +93,10 @@ private:
     void fail(const std::string& error);
 
 public:
-    regserver_client(sss::host* h);
+    regserver_client(uia::host* h);
     ~regserver_client();
 
-    /*shared_ptr<*/ sss::host* get_host() override { return host_; }
+    /*shared_ptr<*/ uia::host* get_host() override { return host_; }
 
     // Set the metadata to attach to our registration
     inline client_profile profile() const { return inf; }

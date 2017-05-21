@@ -28,15 +28,15 @@ class registration_server
 {
     friend class internal::registry_record;
 
-    std::shared_ptr<sss::host> host_;
-    sss::server server_;
-    std::vector<sss::stream> sessions_;
+    std::shared_ptr<uia::host> host_;
+    // sss::server server_;
+    // std::vector<sss::stream> sessions_;
 
     // Hash of insert challenge cookies and corresponding responses
-    std::unordered_map<byte_array, byte_array> chalhash;
+    std::unordered_map<arsenal::byte_array, arsenal::byte_array> chalhash;
 
     // Hash table to look up records by ID
-    std::unordered_map<byte_array, internal::registry_record*> idhash;
+    std::unordered_map<arsenal::byte_array, internal::registry_record*> idhash;
 
     // Hash table to look up records by case-insensitive keyword
     std::unordered_map<std::string, std::unordered_set<internal::registry_record*>>
@@ -52,27 +52,34 @@ class registration_server
     void timeout_record(internal::registry_record* rec);
 
 public:
-    registration_server(std::shared_ptr<sss::host> host);
+    registration_server(std::shared_ptr<uia::host> host);
 
 private:
     void on_incoming_record();
-    void do_insert1(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
-    void do_insert2(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
-    void do_lookup(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
-    void do_search(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
-    void do_delete(byte_array_iwrap<flurry::iarchive>& read, std::shared_ptr<sss::stream> stream);
+    void do_insert1(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
+                    std::shared_ptr<sss::stream> stream);
+    void do_insert2(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
+                    std::shared_ptr<sss::stream> stream);
+    void do_lookup(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
+                   std::shared_ptr<sss::stream> stream);
+    void do_search(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
+                   std::shared_ptr<sss::stream> stream);
+    void do_delete(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
+                   std::shared_ptr<sss::stream> stream);
 
     void reply_insert1(std::shared_ptr<sss::stream> stream,
-                       const byte_array& idi,
-                       const byte_array& nhi);
+                       arsenal::byte_array const& idi,
+                       arsenal::byte_array const& nhi);
     void reply_lookup(internal::registry_record* reci,
                       uint32_t replycode,
-                      const byte_array& idr,
+                      arsenal::byte_array const& idr,
                       internal::registry_record* recr);
-    byte_array
-    calc_cookie(const uia::peer_identity& eid, const byte_array& idi, const byte_array& nhi);
-    internal::registry_record*
-    find_caller(const comm::endpoint& ep, const byte_array& idi, const byte_array& nhi);
+    arsenal::byte_array calc_cookie(uia::peer_identity const& eid,
+                                    arsenal::byte_array const& idi,
+                                    arsenal::byte_array const& nhi);
+    internal::registry_record* find_caller(comm::endpoint const& ep,
+                                           arsenal::byte_array const& idi,
+                                           arsenal::byte_array const& nhi);
 };
 
 } // uia::routing namespace

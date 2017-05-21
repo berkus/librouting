@@ -3,10 +3,9 @@
 
 namespace bp = boost::posix_time;
 using namespace std;
+using namespace arsenal;
 
-namespace uia {
-namespace routing {
-namespace internal {
+namespace uia::routing::internal {
 
 /**
  * Many NATs drop UDP mappings after about 15 minutes, keep re-registering at about half this
@@ -14,7 +13,7 @@ namespace internal {
  */
 const boost::posix_time::time_duration regserver_client::max_rereg = bp::minutes(15);
 
-regserver_client::regserver_client(sss::host* h)
+regserver_client::regserver_client(uia::host* h)
     : client()
     , host_(h)
     , state_(state::idle)
@@ -513,6 +512,4 @@ regserver_client::rereg_timeout()
     reregister();
 }
 
-} // internal namespace
-} // routing namespace
-} // uia namespace
+} // uia::routing::internal namespace

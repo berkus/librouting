@@ -13,9 +13,9 @@
 #include <boost/signals2/signal.hpp>
 #include "arsenal/byte_array.h"
 
-namespace sss {
+namespace uia {
 class host;
-} // sss namespace
+} // uia namespace
 
 namespace uia::routing {
 
@@ -27,12 +27,12 @@ class client;
  */
 class client_coordinator
 {
-    sss::host& host_;
+    uia::host& host_;
 
     class coordinator_impl;
     std::shared_ptr<coordinator_impl> pimpl_;
 public:
-    client_coordinator(std::shared_ptr<sss::host> host);
+    client_coordinator(std::shared_ptr<uia::host> host);
     std::vector<client*> routing_clients() const;
 
     void add_routing_client(client* c);

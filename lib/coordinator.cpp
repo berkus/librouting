@@ -18,6 +18,7 @@
 using namespace std;
 using namespace uia::routing::internal;
 using arsenal::byte_array;
+using arsenal::contains;
 
 namespace uia::routing {
 
@@ -40,7 +41,7 @@ private:
     void receive(boost::asio::const_buffer msg, uia::comm::socket_endpoint const& src) override;
 
 public:
-    routing_receiver(shared_ptr<sss::host> host);
+    routing_receiver(shared_ptr<uia::host> host);
 
     inline void insert_nonce(byte_array const& nonce, client* c)
     {
@@ -51,8 +52,8 @@ public:
     inline void clear_nonce(byte_array const& nonce) { hashed_nonce_clients_.erase(nonce); }
 };
 
-routing_receiver::routing_receiver(shared_ptr<sss::host> host)
-    : comm::packet_receiver(host.get())
+routing_receiver::routing_receiver(shared_ptr<uia::host> host)
+    : comm::packet_receiver(host)
 {
     BOOST_LOG_TRIVIAL(debug) << "Routing receiver created";
 }
@@ -103,7 +104,7 @@ routing_receiver::receive(boost::asio::const_buffer msg, uia::comm::socket_endpo
 class client_coordinator::coordinator_impl
 {
 public:
-    sss::host& host_;
+    uia::host& host_;
     routing_receiver routing_receiver_;
 
     // Global registry of every routing_client for this host, so we can
@@ -111,7 +112,7 @@ public:
     unordered_set<client*> routing_clients_;
 
 public:
-    coordinator_impl(shared_ptr<sss::host> host)
+    coordinator_impl(shared_ptr<uia::host> host)
         : host_(*host.get())
         , routing_receiver_(host)
     {
@@ -122,7 +123,7 @@ public:
 // client_coordinator
 //=====================================================================================================================
 
-client_coordinator::client_coordinator(shared_ptr<sss::host> host)
+client_coordinator::client_coordinator(shared_ptr<uia::host> host)
     : host_(*host.get())
     , pimpl_(std::make_unique<coordinator_impl>(host))
 {
@@ -131,7 +132,7 @@ client_coordinator::client_coordinator(shared_ptr<sss::host> host)
 std::vector<client*>
 client_coordinator::routing_clients() const
 {
-    return set_to_vector(pimpl_->routing_clients_);
+    return arsenal::set_to_vector(pimpl_->routing_clients_);
 }
 
 void

@@ -33,7 +33,7 @@ class client : public client_destroyer
 public:
     virtual ~client() { on_destroyed(this); }
 
-    virtual /*shared_ptr<*/ sss::host* get_host() = 0;
+    virtual /*shared_ptr<*/ uia::host* get_host() = 0;
 
     // Get the metadata about this client.
     std::shared_ptr<client_profile> profile() const;
