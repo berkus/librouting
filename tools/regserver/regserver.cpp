@@ -12,12 +12,16 @@
 #include "uia/comm/socket.h"
 #include "uia/comm/udp_socket.h"
 #include "routing/private/regserver_client.h" // For some shared constants
-#include "sss/host.h"
+#include "uia/host.h"
 #include "regserver.h"
 
 using namespace uia::routing::internal;
 using namespace std;
-using namespace sss;
+using namespace uia;
+using arsenal::byte_array;
+using arsenal::byte_array_iwrap;
+using arsenal::byte_array_owrap;
+using arsenal::contains;
 namespace asio = boost::asio;
 
 constexpr int MAX_RESULTS = 100; // Maximum number of search results
@@ -29,7 +33,7 @@ namespace routing {
 // registration_server implementation
 //=================================================================================================
 
-registration_server::registration_server(std::shared_ptr<sss::host> host)
+registration_server::registration_server(std::shared_ptr<uia::host> host)
     : host_(host)
     , sock(io_service_)
     , sock6(io_service_)
@@ -106,7 +110,7 @@ registration_server::udp_dispatch(byte_array& msg, comm::endpoint const& srcep)
 
     // magic = msg.as<big_uint32_t>()[0];
 
-    // byte_array_iwrap<flurry::iarchive> read(msg);
+    // byte_array_iwrap<arsenal::flurry::iarchive> read(msg);
     // read.archive().skip_raw_data(4);
     // read.archive() >> code;
 
@@ -127,7 +131,7 @@ registration_server::udp_dispatch(byte_array& msg, comm::endpoint const& srcep)
 }
 
 void
-registration_server::do_insert1(byte_array_iwrap<flurry::iarchive>& rxs,
+registration_server::do_insert1(byte_array_iwrap<arsenal::flurry::iarchive>& rxs,
                                 comm::endpoint const& srcep)
 {
     BOOST_LOG_TRIVIAL(debug) << "Insert1";
@@ -165,7 +169,7 @@ registration_server::reply_insert1(const comm::endpoint& srcep,
         // resp.resize(4);
         // resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        // byte_array_owrap<flurry::oarchive> write(resp);
+        // byte_array_owrap<arsenal::flurry::oarchive> write(resp);
         // write.archive() << (REG_RESPONSE | REG_INSERT1) << nhi << challenge;
     }
     send(srcep, resp);
@@ -189,7 +193,7 @@ registration_server::calc_cookie(const comm::endpoint& srcep,
     // XX really should use a proper HMAC here.
     byte_array resp;
     // {
-    //     byte_array_owrap<flurry::oarchive> write(resp);
+    //     byte_array_owrap<arsenal::flurry::oarchive> write(resp);
     //     write.archive() << secret << srcep << idi << nhi << secret;
     // }
 
@@ -197,7 +201,7 @@ registration_server::calc_cookie(const comm::endpoint& srcep,
 }
 
 void
-registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
+registration_server::do_insert2(byte_array_iwrap<arsenal::flurry::iarchive>& rxs,
                                 const comm::endpoint& srcep)
 {
     BOOST_LOG_TRIVIAL(debug) << "Insert2";
@@ -262,7 +266,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
     // Compute the hash of the message components the client signed.
     byte_array sigmsg;
     {
-        byte_array_owrap<flurry::oarchive> write(sigmsg);
+        byte_array_owrap<arsenal::flurry::oarchive> write(sigmsg);
         write.archive() << idi << ni << chal << info;
     }
 
@@ -297,7 +301,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
         // resp.resize(4);
         // resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        // byte_array_owrap<flurry::oarchive> write(resp);
+        // byte_array_owrap<arsenal::flurry::oarchive> write(resp);
         // write.archive() << (REG_RESPONSE | REG_INSERT2) << nhi <<
         // registry_record::timeout_seconds
         //                 << srcep;
@@ -308,7 +312,7 @@ registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& rxs,
 }
 
 void
-registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& rxs, const comm::endpoint& srcep)
+registration_server::do_lookup(byte_array_iwrap<arsenal::flurry::iarchive>& rxs, const comm::endpoint& srcep)
 {
     // Decode the rest of the lookup request.
     byte_array idi, nhi, idr;
@@ -357,7 +361,7 @@ registration_server::reply_lookup(registry_record* reci,
         // resp.resize(4);
         // resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        // byte_array_owrap<flurry::oarchive> write(resp);
+        // byte_array_owrap<arsenal::flurry::oarchive> write(resp);
         // bool known = (recr != nullptr);
         // write.archive() << replycode << reci->nhi << idr << known;
         // if (known) {
@@ -383,7 +387,7 @@ unordered_set_intersection(InIt1 b1, InIt1 e1, InIt2 b2, InIt2 e2, OutIt out)
 }
 
 void
-registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs, const comm::endpoint& srcep)
+registration_server::do_search(byte_array_iwrap<arsenal::flurry::iarchive>& rxs, const comm::endpoint& srcep)
 {
     // Decode the rest of the search request.
     byte_array idi, nhi;
@@ -472,7 +476,7 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs, const co
         // resp.resize(4);
         // resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        // byte_array_owrap<flurry::oarchive> write(resp);
+        // byte_array_owrap<arsenal::flurry::oarchive> write(resp);
         // write.archive() << (REG_RESPONSE | REG_SEARCH) << nhi << search << complete << nresults;
         // for (auto rec : results) {
         //     BOOST_LOG_TRIVIAL(debug) << "Search result " << rec->id;
@@ -486,7 +490,7 @@ registration_server::do_search(byte_array_iwrap<flurry::iarchive>& rxs, const co
 }
 
 void
-registration_server::do_delete(byte_array_iwrap<flurry::iarchive>& rxs, comm::endpoint const& srcep)
+registration_server::do_delete(byte_array_iwrap<arsenal::flurry::iarchive>& rxs, comm::endpoint const& srcep)
 {
     BOOST_LOG_TRIVIAL(debug) << "Received delete request";
 
@@ -514,7 +518,7 @@ registration_server::do_delete(byte_array_iwrap<flurry::iarchive>& rxs, comm::en
         // resp.resize(4);
         // resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        // byte_array_owrap<flurry::oarchive> write(resp);
+        // byte_array_owrap<arsenal::flurry::oarchive> write(resp);
         // write.archive() << (REG_RESPONSE | REG_DELETE) << hashedNonce << wasDeleted;
     }
     send(srcep, resp);
@@ -581,7 +585,7 @@ registration_server::timeout_record(internal::registry_record* rec)
 int
 main(int argc, char** argv)
 {
-    std::shared_ptr<sss::host> host(host::create()); // to create timer engines...
+    std::shared_ptr<uia::host> host(host::create()); // to create timer engines...
     uia::routing::registration_server regserver(host);
     regserver.run();
 }

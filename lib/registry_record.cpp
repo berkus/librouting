@@ -21,10 +21,10 @@ static constexpr auto timeout = (1*60*60);//std::chrono::hours(1); // Records la
 //=================================================================================================
 
 registry_record::registry_record(registration_server& srv,
-                                 const byte_array& id,
-                                 const byte_array& nhi,
+                                 arsenal::byte_array const& id,
+                                 arsenal::byte_array const& nhi,
                                  const uia::comm::endpoint& ep,
-                                 byte_array const& info)
+                                 arsenal::byte_array const& info)
     : srv(srv)
     , id(id)
     , nhi(nhi)

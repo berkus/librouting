@@ -11,31 +11,35 @@
 #include "arsenal/byte_array.h"
 #include "arsenal/byte_array_wrap.h"
 #include "routing/private/registry_record.h"
+#include <unordered_map>
+#include <unordered_set>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/udp.hpp>
+#include <boost/asio/streambuf.hpp>
 
-namespace uia {
-namespace routing {
+namespace uia::routing {
 
 class registration_server
 {
     friend class uia::routing::internal::registry_record;
 
     // The network code actually duplicates some from comm::socket, maybe this can be refactored.
-    std::shared_ptr<sss::host> host_;
+    std::shared_ptr<uia::host> host_;
     boost::asio::io_service io_service_;
     boost::asio::ip::udp::socket sock;
     boost::asio::ip::udp::socket sock6;
     boost::asio::streambuf received_buffer;
-    comm::endpoint received_from;
+    uia::comm::endpoint received_from;
     std::string error_string_;
 
     // XXX should timeout periodically
-    byte_array secret;
+    arsenal::byte_array secret;
 
     // Hash of insert challenge cookies and corresponding responses
-    std::unordered_map<byte_array, byte_array> chalhash;
+    std::unordered_map<arsenal::byte_array, arsenal::byte_array> chalhash;
 
     // Hash table to look up records by ID
-    std::unordered_map<byte_array, internal::registry_record*> idhash;
+    std::unordered_map<arsenal::byte_array, internal::registry_record*> idhash;
 
     // Hash table to look up records by case-insensitive keyword
     std::unordered_map<std::string,
@@ -53,30 +57,40 @@ class registration_server
     void timeout_record(internal::registry_record* rec);
 
 public:
-    registration_server(std::shared_ptr<sss::host> host);
+    registration_server(std::shared_ptr<uia::host> host);
 
     inline void run() { io_service_.run(); }
 
 private:
-    void udp_dispatch(byte_array &msg, const comm::endpoint &ep);
-    void do_insert1(byte_array_iwrap<flurry::iarchive>& is, const comm::endpoint &ep);
-    void do_insert2(byte_array_iwrap<flurry::iarchive>& is, const comm::endpoint &ep);
-    void do_lookup(byte_array_iwrap<flurry::iarchive>& is, const comm::endpoint &ep);
-    void do_search(byte_array_iwrap<flurry::iarchive>& is, const comm::endpoint &ep);
-    void do_delete(byte_array_iwrap<flurry::iarchive>& is, const comm::endpoint& ep);
+    void udp_dispatch(arsenal::byte_array& msg, comm::endpoint const& ep);
+    void do_insert1(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& is,
+                    comm::endpoint const& ep);
+    void do_insert2(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& is,
+                    comm::endpoint const& ep);
+    void do_lookup(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& is,
+                   comm::endpoint const& ep);
+    void do_search(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& is,
+                   comm::endpoint const& ep);
+    void do_delete(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& is,
+                   comm::endpoint const& ep);
 
-    void reply_insert1(const comm::endpoint &ep, const byte_array &idi, const byte_array &nhi);
-    void reply_lookup(internal::registry_record *reci, uint32_t replycode,
-        const byte_array &idr, internal::registry_record *recr);
-    byte_array calc_cookie(const comm::endpoint &ep, const byte_array &idi,
-        const byte_array &nhi);
-    internal::registry_record* find_caller(const comm::endpoint &ep,
-        const byte_array &idi, const byte_array &nhi);
+    void reply_insert1(comm::endpoint const& ep,
+                       arsenal::byte_array const& idi,
+                       arsenal::byte_array const& nhi);
+    void reply_lookup(internal::registry_record* reci,
+                      uint32_t replycode,
+                      arsenal::byte_array const& idr,
+                      internal::registry_record* recr);
+    arsenal::byte_array calc_cookie(comm::endpoint const& ep,
+                                    arsenal::byte_array const& idi,
+                                    arsenal::byte_array const& nhi);
+    internal::registry_record* find_caller(comm::endpoint const& ep,
+                                           arsenal::byte_array const& idi,
+                                           arsenal::byte_array const& nhi);
 
 private:
-    void udp_ready_read(const boost::system::error_code& error, size_t bytes_transferred);
-    bool send(const comm::endpoint& ep, byte_array const& msg);
+    void udp_ready_read(boost::system::error_code const& error, size_t bytes_transferred);
+    bool send(comm::endpoint const& ep, arsenal::byte_array const& msg);
 };
 
-} // routing namespace
-} // uia namespace
+} // uia::routing namespace
