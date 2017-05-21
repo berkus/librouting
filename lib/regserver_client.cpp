@@ -41,7 +41,7 @@ regserver_client::~regserver_client()
 }
 
 void
-regserver_client::fail(const std::string& err)
+regserver_client::fail(std::string const& err)
 {
     error_string_ = err;
     disconnect();
@@ -53,16 +53,16 @@ regserver_client::disconnect()
     if (state_ == state::idle)
         return;
 
-    BOOST_LOG_TRIVIAL(debug) << this << "disconnect";
+    BOOST_LOG_TRIVIAL(debug) << this << " disconnect";
     send_delete();
 
     // Fail all outstanding lookup and search requests
     // XX provide a better error indication?
-    for (const uia::peer_identity& id : lookups)
+    for (auto const& id : lookups)
         on_lookup_done(id, uia::comm::endpoint(), client_profile());
-    for (const uia::peer_identity& id : punches)
+    for (auto const& id : punches)
         on_lookup_done(id, uia::comm::endpoint(), client_profile());
-    for (const std::string& text : searches)
+    for (auto const& text : searches)
         on_search_done(text, std::vector<uia::peer_identity>(), true);
 
     state_ = state::idle;
@@ -78,12 +78,12 @@ regserver_client::disconnect()
     retry_timer_.stop();
     rereg_timer_.stop();
 
-    // Notify the user that we're not (or no longer) registered
+    // Notify the user that we're not registered
     on_disconnected();
 }
 
 void
-regserver_client::register_at(const std::string& srvname, uint16_t srvport)
+regserver_client::register_at(std::string const& srvname, uint16_t srvport)
 {
     assert(state_ == state::idle);
     BOOST_LOG_TRIVIAL(debug) << "Register at " << srvname << ":" << srvport;
@@ -126,7 +126,7 @@ regserver_client::reregister()
     // Just use the IP address we were given in string form
     BOOST_LOG_TRIVIAL(debug) << "Using plain rendezvous server address.";
     addrs.clear();
-    addrs.emplace_back(uia::comm::endpoint(addr, srvport));
+    addrs.emplace_back(addr, srvport);
 
     go_insert1();
 }
@@ -135,13 +135,13 @@ void
 regserver_client::got_resolve_results(const boost::system::error_code& ec,
                                       boost::asio::ip::udp::resolver::iterator ep_it)
 {
-    if (!ec) {
-        for (boost::asio::ip::udp::resolver::iterator end; ep_it != end; ++ep_it) {
-            // possible lookup key - ep_it->host_name()
-            addrs.emplace_back(comm::endpoint(ep_it->endpoint().address(), srvport));
-        }
-    } else {
+    if (ec) {
         return fail(ec.message());
+    }
+
+    for (boost::asio::ip::udp::resolver::iterator end; ep_it != end; ++ep_it) {
+        // possible lookup key - ep_it->host_name()
+        addrs.emplace_back(ep_it->endpoint().address(), srvport);
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Primary rendezvous server address " << addrs[0];
