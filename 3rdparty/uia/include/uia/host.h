@@ -8,6 +8,7 @@
 //
 #pragma once
 
+#include "uia/forward_ptrs.h"
 #include "uia/peer_identity.h"
 #include "uia/timer.h"
 #include "uia/comm/socket_protocol.h"
@@ -16,6 +17,7 @@
 #include "uia/channels/channel_host_state.h"
 #include "uia/asio_host_state.h"
 #include "arsenal/settings_provider.h"
+#include <memory>
 #include <boost/log/trivial.hpp>
 
 namespace uia {

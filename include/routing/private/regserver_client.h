@@ -15,6 +15,7 @@
 #include "routing/client_profile.h"
 #include "routing/routing_client.h"
 #include "uia/timer.h"
+#include "uia/host.h"
 
 namespace uia::routing {
 

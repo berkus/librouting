@@ -8,6 +8,7 @@
 //
 #pragma once
 
+#include <mutex>
 #include <memory>
 #include <unordered_map>
 #include "arsenal/byte_array.h"

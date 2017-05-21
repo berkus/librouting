@@ -8,6 +8,7 @@
 //
 #pragma once
 
+#include <unordered_map>
 #include "arsenal/algorithm.h"
 #include "uia/forward_ptrs.h"
 
