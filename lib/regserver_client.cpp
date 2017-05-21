@@ -26,8 +26,8 @@ regserver_client::regserver_client(uia::host* h)
     retry_timer_.on_timeout.connect([this](bool failed) { timeout(failed); });
     rereg_timer_.on_timeout.connect([this](bool) { rereg_timeout(); });
 
-    host_->coordinator->add_routing_client(this);
-    host_->coordinator->on_routing_client_created(this);
+    // host_->coordinator->add_routing_client(this);
+    // host_->coordinator->on_routing_client_created(this);
 }
 
 regserver_client::~regserver_client()
@@ -36,9 +36,9 @@ regserver_client::~regserver_client()
     disconnect();
 
     // Notify anyone interested of our upcoming destruction.
-    host_->coordinator->on_routing_client_deleted(this);
-    host_->coordinator->remove_routing_client(this);
-    host_->coordinator->clear_nonce(nhi);
+    // host_->coordinator->on_routing_client_deleted(this);
+    // host_->coordinator->remove_routing_client(this);
+    // host_->coordinator->clear_nonce(nhi);
 }
 
 void
@@ -104,7 +104,7 @@ regserver_client::reregister()
 
     // Clear any previous nonce we may have used
     if (!ni.is_empty()) {
-        host_->coordinator->clear_nonce(nhi);
+        // host_->coordinator->clear_nonce(nhi);
         ni.clear();
         nhi.clear();
     }
@@ -159,7 +159,7 @@ regserver_client::go_insert1()
         // ni.resize(crypto::SHA256_HASH_LEN);
         // crypto::fill_random(ni.as_vector());
         // nhi = crypto::sha256::hash(ni);
-        host_->coordinator->insert_nonce(nhi, this);
+        // host_->coordinator->insert_nonce(nhi, this);
     }
     //assert(ni.size() == crypto::SHA256_HASH_LEN);
     //assert(nhi.size() == crypto::SHA256_HASH_LEN);

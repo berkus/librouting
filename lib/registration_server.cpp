@@ -68,54 +68,54 @@ registration_server::on_incoming_record(shared_ptr<stream> stream)
     }
 }
 
-void
-registration_server::do_insert1(byte_array_iwrap<flurry::iarchive>& read,
-                                shared_ptr<stream> stream)
-{
-    BOOST_LOG_TRIVIAL(debug) << "Insert1";
+// void
+// registration_server::do_insert1(byte_array_iwrap<flurry::iarchive>& read,
+//                                 shared_ptr<stream> stream)
+// {
+//     BOOST_LOG_TRIVIAL(debug) << "Insert1";
 
-    // Decode the rest of the request message (after the 32-bit code)
-    byte_array initiator_eid, initiator_hashed_nonce;
-    read.archive() >> initiator_eid >> initiator_hashed_nonce;
+//     // Decode the rest of the request message (after the 32-bit code)
+//     byte_array initiator_eid, initiator_hashed_nonce;
+//     read.archive() >> initiator_eid >> initiator_hashed_nonce;
 
-    if (initiator_eid.is_empty() || initiator_hashed_nonce.is_empty())
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Received invalid Insert1 message";
-        return;
-    }
+//     if (initiator_eid.is_empty() || initiator_hashed_nonce.is_empty())
+//     {
+//         BOOST_LOG_TRIVIAL(debug) << "Received invalid Insert1 message";
+//         return;
+//     }
 
-    // Compute and reply with an appropriate challenge.
-    reply_insert1(stream, initiator_eid, initiator_hashed_nonce);
-}
+//     // Compute and reply with an appropriate challenge.
+//     reply_insert1(stream, initiator_eid, initiator_hashed_nonce);
+// }
 
 /**
  * Send back the challenge cookie in our INSERT1 response,
  * in order to verify round-trip connectivity
  * before spending CPU time checking the client's signature.
  */
-void
-registration_server::reply_insert1(shared_ptr<stream> stream,
-                                   const byte_array &initiator_eid,
-                                   const byte_array &initiator_hashed_nonce)
-{
-    peer_id remote_id = stream->remote_host_id();
-    // Compute the correct challenge cookie for the message.
-    // really should use a proper HMAC here. -- that's provided by channel layer if possible
-    byte_array challenge = calc_cookie(remote_id, initiator_eid, initiator_hashed_nonce);
+// void
+// registration_server::reply_insert1(shared_ptr<stream> stream,
+//                                    const byte_array &initiator_eid,
+//                                    const byte_array &initiator_hashed_nonce)
+// {
+//     peer_id remote_id = stream->remote_host_id();
+//     // Compute the correct challenge cookie for the message.
+//     // really should use a proper HMAC here. -- that's provided by channel layer if possible
+//     byte_array challenge = calc_cookie(remote_id, initiator_eid, initiator_hashed_nonce);
 
-    BOOST_LOG_TRIVIAL(debug) << "reply_insert1 challenge " << challenge;
+//     BOOST_LOG_TRIVIAL(debug) << "reply_insert1 challenge " << challenge;
 
-    byte_array resp;
-    {
-        resp.resize(4);
-        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+//     byte_array resp;
+//     {
+//         resp.resize(4);
+//         resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << (REG_RESPONSE | REG_INSERT1) << initiator_hashed_nonce << challenge;
-    }
-    stream->write_record(resp);
-    BOOST_LOG_TRIVIAL(debug) << "reply_insert1 sent to " << remote_id;
-}
+//         byte_array_owrap<flurry::oarchive> write(resp);
+//         write.archive() << (REG_RESPONSE | REG_INSERT1) << initiator_hashed_nonce << challenge;
+//     }
+//     stream->write_record(resp);
+//     BOOST_LOG_TRIVIAL(debug) << "reply_insert1 sent to " << remote_id;
+// }
 
 byte_array
 registration_server::calc_cookie(const peer_id& eid,
@@ -142,194 +142,194 @@ registration_server::calc_cookie(const peer_id& eid,
     return crypto::sha256::hash(resp);
 }
 
-void
-registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& read,
-                                shared_ptr<stream> stream)
-{
-    peer_id remote_id = stream->remote_host_id();
+// void
+// registration_server::do_insert2(byte_array_iwrap<flurry::iarchive>& read,
+//                                 shared_ptr<stream> stream)
+// {
+//     peer_id remote_id = stream->remote_host_id();
 
-    BOOST_LOG_TRIVIAL(debug) << "Insert2";
+//     BOOST_LOG_TRIVIAL(debug) << "Insert2";
 
-    // Decode the rest of the request message (after the 32-bit code)
-    byte_array initiator_eid, initiator_nonce, challenge, info, key, signature;
-    read.archive() >> initiator_eid >> initiator_nonce >> challenge >> info >> key >> signature;
-    if (initiator_eid.is_empty()) // @todo: read will throw exception on eos
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Received invalid Insert2 message";
-        return;
-    }
+//     // Decode the rest of the request message (after the 32-bit code)
+//     byte_array initiator_eid, initiator_nonce, challenge, info, key, signature;
+//     read.archive() >> initiator_eid >> initiator_nonce >> challenge >> info >> key >> signature;
+//     if (initiator_eid.is_empty()) // @todo: read will throw exception on eos
+//     {
+//         BOOST_LOG_TRIVIAL(debug) << "Received invalid Insert2 message";
+//         return;
+//     }
 
-    sss::peer_identity peerid(initiator_eid);
+//     sss::peer_identity peerid(initiator_eid);
 
-    // The client's INSERT1 contains the hash of its nonce;
-    // the INSERT2 contains the actual nonce,
-    // so that an eavesdropper can't easily forge an INSERT2
-    // after seeing the client's INSERT1 fly past.
-    byte_array initiator_hashed_nonce = crypto::sha256::hash(initiator_nonce);
+//     // The client's INSERT1 contains the hash of its nonce;
+//     // the INSERT2 contains the actual nonce,
+//     // so that an eavesdropper can't easily forge an INSERT2
+//     // after seeing the client's INSERT1 fly past.
+//     byte_array initiator_hashed_nonce = crypto::sha256::hash(initiator_nonce);
 
-    // First check the challenge cookie:
-    // if it is invalid (perhaps just because our secret expired),
-    // just send back a new INSERT1 response.
-    if (calc_cookie(stream, initiator_eid, initiator_hashed_nonce) != challenge)
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Received Insert2 message with bad cookie";
-        return reply_insert1(stream, initiator_eid, initiator_hashed_nonce);
-    }
+//     // First check the challenge cookie:
+//     // if it is invalid (perhaps just because our secret expired),
+//     // just send back a new INSERT1 response.
+//     if (calc_cookie(stream, initiator_eid, initiator_hashed_nonce) != challenge)
+//     {
+//         BOOST_LOG_TRIVIAL(debug) << "Received Insert2 message with bad cookie";
+//         return reply_insert1(stream, initiator_eid, initiator_hashed_nonce);
+//     }
 
-    // See if we've already responded to a request with this cookie.
-    if (contains(chalhash, challenge))
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Received apparent replay of old Insert2 request";
+//     // See if we've already responded to a request with this cookie.
+//     if (contains(chalhash, challenge))
+//     {
+//         BOOST_LOG_TRIVIAL(debug) << "Received apparent replay of old Insert2 request";
 
-        // Just return the previous response.
-        // If the registered response is empty,
-        // it means the client was bad so we're ignoring it:
-        // in that case just silently drop the request.
-        byte_array resp = chalhash[challenge];
-        if (!resp.is_empty()) {
-            stream->write_record(resp);
-        }
+//         // Just return the previous response.
+//         // If the registered response is empty,
+//         // it means the client was bad so we're ignoring it:
+//         // in that case just silently drop the request.
+//         byte_array resp = chalhash[challenge];
+//         if (!resp.is_empty()) {
+//             stream->write_record(resp);
+//         }
 
-        return;
-    }
+//         return;
+//     }
 
-    // For now we only support RSA-based identities,
-    // because DSA signature verification is much more costly.
-    // @todo Support NaCl identity schemes (ecdsa etc).
-    // @todo Would probably be good to send back an error response.
-    sss::peer_identity identi(initiator_eid);
-    if (identi.key_scheme() != sss::peer_identity::scheme::rsa160)
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Received Insert2 for unsupported ID scheme " << identi.scheme_name();
-        chalhash.insert(challenge, byte_array());
-        return;
-    }
+//     // For now we only support RSA-based identities,
+//     // because DSA signature verification is much more costly.
+//     // @todo Support NaCl identity schemes (ecdsa etc).
+//     // @todo Would probably be good to send back an error response.
+//     sss::peer_identity identi(initiator_eid);
+//     if (identi.key_scheme() != sss::peer_identity::scheme::rsa160)
+//     {
+//         BOOST_LOG_TRIVIAL(debug) << "Received Insert2 for unsupported ID scheme " << identi.scheme_name();
+//         chalhash.insert(challenge, byte_array());
+//         return;
+//     }
 
-    // Parse the client's public key and make sure it matches its EID.
-    if (!identi.set_key(key))
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Received bad identity from client " << remote_id << " on Insert2";
-        chalhash.insert(challenge, byte_array());
-        return;
-    }
+//     // Parse the client's public key and make sure it matches its EID.
+//     if (!identi.set_key(key))
+//     {
+//         BOOST_LOG_TRIVIAL(debug) << "Received bad identity from client " << remote_id << " on Insert2";
+//         chalhash.insert(challenge, byte_array());
+//         return;
+//     }
 
-    // Compute the hash of the message components the client signed.
-    byte_array sigmsg;
-    {
-        byte_array_owrap<flurry::oarchive> write(sigmsg);
-        write.archive() << initiator_eid << initiator_nonce << challenge << info;
-    }
+//     // Compute the hash of the message components the client signed.
+//     byte_array sigmsg;
+//     {
+//         byte_array_owrap<flurry::oarchive> write(sigmsg);
+//         write.archive() << initiator_eid << initiator_nonce << challenge << info;
+//     }
 
-    // Verify the client's signature using his public key.
-    if (!identi.verify(crypto::sha256::hash(sigmsg), signature))
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Signature check for client " << remote_id << " failed on Insert2";
-        chalhash.insert(challenge, byte_array());
-        return;
-    }
+//     // Verify the client's signature using his public key.
+//     if (!identi.verify(crypto::sha256::hash(sigmsg), signature))
+//     {
+//         BOOST_LOG_TRIVIAL(debug) << "Signature check for client " << remote_id << " failed on Insert2";
+//         chalhash.insert(challenge, byte_array());
+//         return;
+//     }
 
-    // Insert an appropriate record into our in-memory client database.
-    // This automatically replaces any existing record for the same ID,
-    // in effect resetting the timeout for the client as well.
-    registry_record* rec{
-        new registry_record(*this, initiator_eid, initiator_hashed_nonce, remote_id, info)};
+//     // Insert an appropriate record into our in-memory client database.
+//     // This automatically replaces any existing record for the same ID,
+//     // in effect resetting the timeout for the client as well.
+//     registry_record* rec{
+//         new registry_record(*this, initiator_eid, initiator_hashed_nonce, remote_id, info)};
 
-    // Register record in the registration_server's ID-lookup table,
-    // replacing any existing entry with this ID.
-    registry_record* old = idhash[initiator_eid];
-    if (old != nullptr)
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Replacing existing record for " << initiator_eid;
-        timeout_record(old);
-    }
-    idhash[initiator_eid] = rec;
-    all_records_.insert(rec);
+//     // Register record in the registration_server's ID-lookup table,
+//     // replacing any existing entry with this ID.
+//     registry_record* old = idhash[initiator_eid];
+//     if (old != nullptr)
+//     {
+//         BOOST_LOG_TRIVIAL(debug) << "Replacing existing record for " << initiator_eid;
+//         timeout_record(old);
+//     }
+//     idhash[initiator_eid] = rec;
+//     all_records_.insert(rec);
 
-    // Register all our keywords in the registration_server's keyword table.
-    register_keywords(true, rec);
+//     // Register all our keywords in the registration_server's keyword table.
+//     register_keywords(true, rec);
 
-    // Send a reply to the client indicating our timeout on its record,
-    // so it knows how soon it will need to refresh the record.
-    byte_array resp;
-    {
-        resp.resize(4);
-        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+//     // Send a reply to the client indicating our timeout on its record,
+//     // so it knows how soon it will need to refresh the record.
+//     byte_array resp;
+//     {
+//         resp.resize(4);
+//         resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(resp);
-        write.archive() << (REG_RESPONSE | REG_INSERT2) << initiator_hashed_nonce
-            << registry_record::timeout_seconds << remote_id;
-    }
-    stream->write_record(resp);
+//         byte_array_owrap<flurry::oarchive> write(resp);
+//         write.archive() << (REG_RESPONSE | REG_INSERT2) << initiator_hashed_nonce
+//             << registry_record::timeout_seconds << remote_id;
+//     }
+//     stream->write_record(resp);
 
-    BOOST_LOG_TRIVIAL(debug) << "Inserted record for " << peerid << " at " << remote_id;
-}
+//     BOOST_LOG_TRIVIAL(debug) << "Inserted record for " << peerid << " at " << remote_id;
+// }
 
-void
-registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& read,
-                               shared_ptr<stream> stream)
-{
-    // Decode the rest of the lookup request.
-    byte_array initiator_eid, initiator_hashed_nonce, responder_eid;
-    bool notify;
-    read.archive() >> initiator_eid >> initiator_hashed_nonce >> responder_eid >> notify;
-    if (initiator_eid.is_empty())
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Received invalid Lookup message";
-        return;
-    }
+// void
+// registration_server::do_lookup(byte_array_iwrap<flurry::iarchive>& read,
+//                                shared_ptr<stream> stream)
+// {
+//     // Decode the rest of the lookup request.
+//     byte_array initiator_eid, initiator_hashed_nonce, responder_eid;
+//     bool notify;
+//     read.archive() >> initiator_eid >> initiator_hashed_nonce >> responder_eid >> notify;
+//     if (initiator_eid.is_empty())
+//     {
+//         BOOST_LOG_TRIVIAL(debug) << "Received invalid Lookup message";
+//         return;
+//     }
 
-    if (notify) {
-        BOOST_LOG_TRIVIAL(debug) << "Lookup with notify";
-    }
+//     if (notify) {
+//         BOOST_LOG_TRIVIAL(debug) << "Lookup with notify";
+//     }
 
-    // Look up the initiator (caller).
-    //
-    // To protect us and our clients from DoS attacks,
-    // the caller must be registered with the correct source endpoint.
-    //
-    // @todo It's enough to send lookup requests with HUUGE responder_eid or nonce array headers
-    // and cause memory overalloc in do_lookup() while reading from flurry.
-    auto reci = find_caller(stream->remote_host_id(), initiator_eid, initiator_hashed_nonce);
-    if (reci == nullptr) {
-        return;
-    }
+//     // Look up the initiator (caller).
+//     //
+//     // To protect us and our clients from DoS attacks,
+//     // the caller must be registered with the correct source endpoint.
+//     //
+//     // @todo It's enough to send lookup requests with HUUGE responder_eid or nonce array headers
+//     // and cause memory overalloc in do_lookup() while reading from flurry.
+//     auto reci = find_caller(stream->remote_host_id(), initiator_eid, initiator_hashed_nonce);
+//     if (reci == nullptr) {
+//         return;
+//     }
 
-    // Return the contents of the selected record, if any, to the caller.
-    // If the target is not or is no longer registered
-    // (e.g., because its record timed out since
-    // the caller's last Lookup or Search request that found it),
-    // respond to the initiator anyway indicating as such.
-    auto recr = idhash[responder_eid];
-    reply_lookup(reci, REG_RESPONSE | REG_LOOKUP, responder_eid, recr);
+//     // Return the contents of the selected record, if any, to the caller.
+//     // If the target is not or is no longer registered
+//     // (e.g., because its record timed out since
+//     // the caller's last Lookup or Search request that found it),
+//     // respond to the initiator anyway indicating as such.
+//     auto recr = idhash[responder_eid];
+//     reply_lookup(reci, REG_RESPONSE | REG_LOOKUP, responder_eid, recr);
 
-    // Send a response to the target as well, if found,
-    // so that the two can perform UDP hole punching if desired.
-    if (recr and notify) {
-        reply_lookup(recr, REG_NOTIFY | REG_LOOKUP, initiator_eid, reci);
-    }
-}
+//     // Send a response to the target as well, if found,
+//     // so that the two can perform UDP hole punching if desired.
+//     if (recr and notify) {
+//         reply_lookup(recr, REG_NOTIFY | REG_LOOKUP, initiator_eid, reci);
+//     }
+// }
 
-void
-registration_server::reply_lookup(registry_record *reci, uint32_t replycode,
-                                  const byte_array &responder_eid, registry_record *recr)
-{
-    BOOST_LOG_TRIVIAL(debug) << "Reply lookup " << replycode;
+// void
+// registration_server::reply_lookup(registry_record *reci, uint32_t replycode,
+//                                   const byte_array &responder_eid, registry_record *recr)
+// {
+//     BOOST_LOG_TRIVIAL(debug) << "Reply lookup " << replycode;
 
-    byte_array resp;
-    {
-        resp.resize(4);
-        resp.as<big_uint32_t>()[0] = REG_MAGIC;
+//     byte_array resp;
+//     {
+//         resp.resize(4);
+//         resp.as<big_uint32_t>()[0] = REG_MAGIC;
 
-        byte_array_owrap<flurry::oarchive> write(resp);
-        bool known = (recr != nullptr);
-        write.archive() << replycode << reci->initiator_hashed_nonce << responder_eid << known;
-        if (known) {
-            write.archive() << recr->ep << recr->profile_info_;
-        }
-    }
-    // send(reci->ep, resp):
-    reci->stream->write_record(resp);
-}
+//         byte_array_owrap<flurry::oarchive> write(resp);
+//         bool known = (recr != nullptr);
+//         write.archive() << replycode << reci->initiator_hashed_nonce << responder_eid << known;
+//         if (known) {
+//             write.archive() << recr->ep << recr->profile_info_;
+//         }
+//     }
+//     // send(reci->ep, resp):
+//     reci->stream->write_record(resp);
+// }
 
 template <typename InIt1, typename InIt2, typename OutIt>
 OutIt unordered_set_intersection(InIt1 b1, InIt1 e1, InIt2 b2, InIt2 e2, OutIt out)

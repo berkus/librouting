@@ -56,24 +56,24 @@ public:
 
 private:
     void on_incoming_record();
-    void do_insert1(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
-                    std::shared_ptr<sss::stream> stream);
-    void do_insert2(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
-                    std::shared_ptr<sss::stream> stream);
-    void do_lookup(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
-                   std::shared_ptr<sss::stream> stream);
-    void do_search(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
-                   std::shared_ptr<sss::stream> stream);
-    void do_delete(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
-                   std::shared_ptr<sss::stream> stream);
+    // void do_insert1(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
+    //                 std::shared_ptr<sss::stream> stream);
+    // void do_insert2(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
+    //                 std::shared_ptr<sss::stream> stream);
+    // void do_lookup(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
+    //                std::shared_ptr<sss::stream> stream);
+    // void do_search(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
+    //                std::shared_ptr<sss::stream> stream);
+    // void do_delete(arsenal::byte_array_iwrap<arsenal::flurry::iarchive>& read,
+    //                std::shared_ptr<sss::stream> stream);
 
-    void reply_insert1(std::shared_ptr<sss::stream> stream,
-                       arsenal::byte_array const& idi,
-                       arsenal::byte_array const& nhi);
-    void reply_lookup(internal::registry_record* reci,
-                      uint32_t replycode,
-                      arsenal::byte_array const& idr,
-                      internal::registry_record* recr);
+    // void reply_insert1(std::shared_ptr<sss::stream> stream,
+    //                    arsenal::byte_array const& idi,
+    //                    arsenal::byte_array const& nhi);
+    // void reply_lookup(internal::registry_record* reci,
+    //                   uint32_t replycode,
+    //                   arsenal::byte_array const& idr,
+    //                   internal::registry_record* recr);
     arsenal::byte_array calc_cookie(uia::peer_identity const& eid,
                                     arsenal::byte_array const& idi,
                                     arsenal::byte_array const& nhi);
