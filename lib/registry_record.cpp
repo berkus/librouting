@@ -10,10 +10,11 @@
 #include "uia/peer_identity.h"
 #include "routing/private/registry_record.h"
 #include "routing/registration_server.h"
+#include <chrono>
 
 namespace uia::routing::internal {
 
-constexpr auto registry_record::timeout;
+static constexpr auto timeout = (1*60*60);//std::chrono::hours(1); // Records last 1 hour
 
 //=================================================================================================
 // registry_record implementation
