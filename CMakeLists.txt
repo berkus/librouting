@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
+project(librouting)
 
 if (NOT BUILD_IN_UVVY)
     include(cmake/setup.cmake)
