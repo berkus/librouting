@@ -1,5 +1,3 @@
-//  example.cpp
-//
 // Copyright (c) 2014, Ruben De Visscher
 // All rights reserved.
 //
@@ -23,40 +21,45 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "sodiumpp.h"
+#include <sodiumpp/sodiumpp.h>
 #include <string>
 #include <iostream>
 using namespace sodiumpp;
 using namespace std;
 
 int main(int argc, const char ** argv) {
-    secret_key sk_client;
-    secret_key sk_server;
+    box_secret_key sk_client;
+    box_secret_key sk_server;
 
-    cout << "Server " << sk_server << endl;
-    cout << "Client " << sk_client << endl;
+    cout << "Client key: " << sk_client << endl;
+    cout << "Server key: " << sk_server << endl;
+    cout << endl;
 
-    // Create a nonce type that has a 64-bit sequential counter and constant random bytes for the remaining bytes
-    typedef nonce<crypto_box_NONCEBYTES-8, 8> nonce64;
-
-    // Box with client private key for server public key to unbox.
+    // Uses predefined nonce type with 64-bit sequential counter 
+    // and constant random bytes for the rest
     boxer<nonce64> client_boxer(sk_server.pk, sk_client);
-    // Unbox with server private key and passed client nonce.
-    unboxer<nonce64> server_unboxer(sk_client.pk, sk_server, client_boxer.nonce_constant());
+    unboxer<nonce64> server_unboxer(sk_client.pk, sk_server, client_boxer.get_nonce_constant());
 
-    string boxed = client_boxer.box("Hello, world!\n");
-    cout << bin2hex(boxed) << endl;
-    string unboxed = server_unboxer.unbox(boxed);
-    cout << unboxed;
+    nonce64 used_n;
+    encoded_bytes boxed = client_boxer.box("Hello, world!\n", used_n);
+    cout << "Nonce (hex): " << used_n.get(encoding::hex).bytes << endl;
+    cout << "Boxed message (z85): " << boxed.to(encoding::z85).bytes << endl;
+    // Nonce is passed explicitly here, but will also be increased automatically
+    // if unboxing happens in the same order as boxing.
+    // In a real application this nonce would be passed along with the boxed message.
+    string unboxed = server_unboxer.unbox(boxed, used_n);
+    cout << "Unboxed message: " << unboxed;
+    cout << endl;
 
     // Box with server private key for client public key to unbox.
     boxer<nonce64> server_boxer(sk_client.pk, sk_server);
     // Unbox with client private key and passed server nonce.
-    unboxer<nonce64> client_unboxer(sk_server.pk, sk_client, server_boxer.nonce_constant());
+    unboxer<nonce64> client_unboxer(sk_server.pk, sk_client, server_boxer.get_nonce_constant());
 
-    boxed = server_boxer.box("From sodiumpp!\n");
-    cout << bin2hex(boxed) << endl;
-    unboxed = client_unboxer.unbox(boxed);
-    cout << unboxed;
+    boxed = server_boxer.box("From sodiumpp!\n", used_n);
+    unboxed = client_unboxer.unbox(boxed, used_n);
+    cout << "Nonce (hex): " << used_n.get(encoding::hex).bytes << endl;
+    cout << "Boxed message (z85): " << boxed.to(encoding::z85).bytes << endl;
+    cout << "Unboxed message: " << unboxed;
     return 0;
 }

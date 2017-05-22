@@ -1,19 +1,47 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.8)
 project (sodiumpp)
 
 if (CMAKE_VERSION VERSION_GREATER 3.0.0 OR CMAKE_VERSION VERSION_EQUAL 3.0.0)
-cmake_policy(SET CMP0042 OLD)
+    cmake_policy(SET CMP0042 OLD)
 endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")# -std=c++11
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+include(FindSodium)
+include_directories(${SODIUM_INCLUDE_DIRS})
 
-add_library(sodiumpp SHARED sodiumpp.cpp)
-target_link_libraries(sodiumpp ${SODIUM_LIBRARIES})
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-if (BUILD_TESTING)
-    add_executable(example example.cpp)
-    target_link_libraries(example sodiumpp)
-endif (BUILD_TESTING)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -g")
 
-install_files(/include .h)
-install_targets(/lib sodiumpp)
+if(SODIUMPP_MACPORTS)
+    include_directories("/opt/local/include")
+    link_directories("/opt/local/lib")
+endif()
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sodiumpp/include)
+
+if(SODIUMPP_STATIC)
+    add_library(sodiumpp STATIC sodiumpp/sodiumpp.cpp sodiumpp/z85/z85.c sodiumpp/z85/z85_impl.cpp)
+    set(SODIUMLIB ${SODIUM_LIBRARIES})
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    add_library(sodiumpp SHARED sodiumpp/sodiumpp.cpp sodiumpp/z85/z85.c sodiumpp/z85/z85_impl.cpp)
+    target_link_libraries(sodiumpp ${SODIUM_LIBRARIES})
+    set(SODIUMLIB ${SODIUM_SHARED_LIBRARIES})
+endif()
+
+if(SODIUMPP_EXAMPLE)
+    add_executable(example sodiumpp/example.cpp)
+    target_link_libraries(example sodiumpp ${SODIUMLIB})
+endif()
+
+if(SODIUMPP_TEST)
+    add_executable(tests sodiumpp/test.cpp)
+    target_link_libraries(tests sodiumpp ${SODIUMLIB})
+endif()
+
+install(DIRECTORY sodiumpp/include/sodiumpp DESTINATION include)
+install(TARGETS sodiumpp DESTINATION lib)

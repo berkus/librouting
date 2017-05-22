@@ -5,7 +5,7 @@
 ;
 [subrepo]
 	remote = git@github.com:berkus/sodiumpp.git
-	branch = master
-	commit = 6c4c8279732954d2d95ae4430cc6a087063189ba
-	parent = 654007641fc6195a7f77c3fa29d4d23500868655
+	branch = local_changes
+	commit = cfc062a7994a769201203740abce0ac39e974729
+	parent = 92ba15aa065d9c5a3d0b561a5434f28c539fc4f7
 	cmdver = 0.3.1

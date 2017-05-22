@@ -11,3 +11,9 @@
 *.lai
 *.la
 *.a
+
+# Vim swap files
+.*.swp
+
+# CMake build files
+build
