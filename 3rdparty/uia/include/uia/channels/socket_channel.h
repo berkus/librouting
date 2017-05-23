@@ -26,8 +26,8 @@ class socket_channel : public std::enable_shared_from_this<socket_channel>
     uia::comm::socket_wptr socket_;  ///< Socket we're currently bound to, if any.
     uia::comm::endpoint remote_ep_;  ///< Endpoint of the remote side.
     // @todo change these to krypto::secret_key and krypto::public_key
-    sodiumpp::secret_key local_key_;///< Near end short-term secret key.
-    sodiumpp::public_key remote_key_;///< Far end short-term public key.
+    sodiumpp::box_secret_key local_key_;///< Near end short-term secret key.
+    sodiumpp::box_public_key remote_key_;///< Far end short-term public key.
     bool active_{false};             ///< True if we're sending and accepting packets.
 
     /**
@@ -45,9 +45,9 @@ class socket_channel : public std::enable_shared_from_this<socket_channel>
     bool receive_decode(boost::asio::const_buffer in, arsenal::byte_array& out);
 
 public:
-    socket_channel(sodiumpp::secret_key local_short,
-                          sodiumpp::public_key remote_short,
-                          uia::comm::socket_endpoint const& responder_ep);
+    socket_channel(sodiumpp::box_secret_key local_short,
+                   sodiumpp::box_public_key remote_short,
+                   uia::comm::socket_endpoint const& responder_ep);
     inline virtual ~socket_channel() { unbind(); }
 
     /**
@@ -119,12 +119,12 @@ public:
     /**
      * Return current local channel number.
      */
-    inline std::string local_channel() const { return local_key_.pk.get(); }
+    inline std::string local_channel() const { return local_key_.pk.get().to_binary(); }
 
     /**
      * Return current remote channel number.
      */
-    inline std::string remote_channel() const { return remote_key_.get(); }
+    inline std::string remote_channel() const { return remote_key_.get().to_binary(); }
 
     /**
      * Receive a network packet msg from endpoint src.

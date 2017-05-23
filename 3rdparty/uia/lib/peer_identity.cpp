@@ -62,8 +62,8 @@ peer_identity::set_key(string const& key)
 peer_identity
 peer_identity::generate()
 {
-    sodiumpp::secret_key k;
-    return peer_identity(k.pk.get(), k.get());
+    sodiumpp::box_secret_key k;
+    return peer_identity(k.pk.get().to_binary(), k.get().to_binary());
 }
 
 string
@@ -72,10 +72,10 @@ peer_identity::public_key() const
     return id_;
 }
 
-sodiumpp::secret_key
+sodiumpp::box_secret_key
 peer_identity::secret_key() const
 {
-    return sodiumpp::secret_key(id_, private_key_);
+    return sodiumpp::box_secret_key(id_, private_key_);
 }
 
 //=================================================================================================

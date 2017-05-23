@@ -11,8 +11,8 @@
 
 namespace uia {
 
-socket_channel::socket_channel(sodiumpp::secret_key local_short,
-                          sodiumpp::public_key remote_short,
+socket_channel::socket_channel(sodiumpp::box_secret_key local_short,
+                          sodiumpp::box_public_key remote_short,
                           uia::comm::socket_endpoint const& ep)
     : socket_(ep.socket())
     , remote_ep_(ep)

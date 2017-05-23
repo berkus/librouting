@@ -3,7 +3,7 @@ project(librouting)
 
 if (NOT BUILD_IN_UVVY)
     include(cmake/setup.cmake)
-    include_directories(3rdparty) #sodiumpp
+    include_directories(3rdparty/sodiumpp/sodiumpp/include)
     include(FindSodium)
     include_directories(${SODIUM_INCLUDE_DIRS})
     add_subdirectory(3rdparty/sodiumpp)

@@ -69,9 +69,9 @@ class initiator : public std::enable_shared_from_this<initiator>
 
     void retransmit(bool fail);
     void cookie_expired();
-    void create_channel(sodiumpp::secret_key local_short,
-                        sodiumpp::public_key remote_short,
-                        sodiumpp::public_key remote_long,
+    void create_channel(sodiumpp::box_secret_key local_short,
+                        sodiumpp::box_public_key remote_short,
+                        sodiumpp::box_public_key remote_long,
                         uia::comm::socket_endpoint const& responder_ep);
     void done();
 
@@ -79,7 +79,7 @@ class initiator : public std::enable_shared_from_this<initiator>
 
     // We know server long term public key on start - this is remote_id_
     // We need to remember short-term server public key
-    sodiumpp::secret_key short_term_secret_key; // out short-term key (generated)
+    sodiumpp::box_secret_key short_term_secret_key; // out short-term key (generated)
     std::string server_short_term_public_key;   // remote_peer.short_term key
 
     std::string minute_cookie_; // one-minute cookie received after hello packet response

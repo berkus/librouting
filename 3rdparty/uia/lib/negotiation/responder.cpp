@@ -63,7 +63,7 @@ socket_channel::send_message(string payload)
         remote_key_, local_key_, MESSAGE_NONCE_PREFIX);
     string box = seal.box(payload);
 
-    packet.shortterm_public_key = as_array<32>(local_key_.pk.get());
+    packet.shortterm_public_key = as_array<32>(local_key_.pk.get().to_binary());
     packet.box = box;
     packet.nonce = as_array<8>(seal.nonce_sequential());
 
@@ -92,9 +92,9 @@ responder::is_initiator_acceptable(uia::comm::socket_endpoint const& initiator_e
 }
 
 socket_channel_uptr
-responder::create_channel(sodiumpp::secret_key local_short,
-                          sodiumpp::public_key remote_short,
-                          sodiumpp::public_key remote_long,
+responder::create_channel(sodiumpp::box_secret_key local_short,
+                          sodiumpp::box_public_key remote_short,
+                          sodiumpp::box_public_key remote_long,
                           uia::comm::socket_endpoint const& initiator_ep)
 {
     auto ch = boost::make_unique<socket_channel>(local_short, remote_short, initiator_ep);
@@ -137,7 +137,7 @@ responder::got_hello(boost::asio::const_buffer msg, uia::comm::socket_endpoint c
     string clientKey = as_string(hello.initiator_shortterm_public_key);
     string nonce     = HELLO_NONCE_PREFIX + as_string(hello.nonce);
 
-    unboxer<recv_nonce> unseal(clientKey, host_->host_identity().secret_key(), nonce);
+    unboxer<nonce<16>> unseal(clientKey, host_->host_identity().secret_key(), nonce);
     string open = unseal.unbox(as_string(hello.box));
 
     // Open box contains client's long-term public key which we should check against a blacklist

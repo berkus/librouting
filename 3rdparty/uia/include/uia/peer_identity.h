@@ -133,7 +133,7 @@ public:
      * @return public and private key as single object.
      * @throws bad_key if no private key set.
      */
-    sodiumpp::secret_key secret_key() const;
+    sodiumpp::box_secret_key secret_key() const;
 
     /**
      * Set the public or private key associated with this identity.

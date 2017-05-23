@@ -38,8 +38,8 @@ class responder : public comm::packet_receiver
 
     host_ptr host_;
 
-    sodiumpp::secret_key short_term_key; // generated
-    sodiumpp::secret_key minute_key;
+    sodiumpp::box_secret_key short_term_key; // generated
+    sodiumpp::box_secret_key minute_key;
     std::set<std::string> cookie_cache;
     std::string client_short_term_key;
 
@@ -90,9 +90,9 @@ protected:
      * endpoint on the far side.
      * This method can return nullptr to reject the incoming connection.
      */
-    virtual socket_channel_uptr create_channel(sodiumpp::secret_key local_short,
-                                        sodiumpp::public_key remote_short,
-                                        sodiumpp::public_key remote_long,
+    virtual socket_channel_uptr create_channel(sodiumpp::box_secret_key local_short,
+                                        sodiumpp::box_public_key remote_short,
+                                        sodiumpp::box_public_key remote_long,
                                         uia::comm::socket_endpoint const& initiator_ep);
     friend class initiator;
 

@@ -148,7 +148,7 @@ initiator::send_hello()
     auto box_contents = host_->host_identity().secret_key().pk.get() + string(32, '\0');
 
     uia::packets::hello_packet_header pkt;
-    pkt.initiator_shortterm_public_key = as_array<32>(short_term_secret_key.pk.get());
+    pkt.initiator_shortterm_public_key = as_array<32>(short_term_secret_key.pk.get().to_binary());
     pkt.box                            = as_array<80>(seal.box(box_contents));
     pkt.nonce                          = as_array<8>(seal.nonce_sequential());
 
