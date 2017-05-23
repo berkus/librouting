@@ -26,7 +26,7 @@ BOOST_FUSION_DEFINE_STRUCT(
 
 BOOST_FUSION_DEFINE_STRUCT(
     (uia)(packets), hello_packet_header,
-    (magic::hello_packet, magic)
+    (uia::magic::hello_packet, magic)
     (eckey_t, initiator_shortterm_public_key)
     (box64_t, zeros)
     (cnonce8_t, nonce)
@@ -35,14 +35,14 @@ BOOST_FUSION_DEFINE_STRUCT(
 
 BOOST_FUSION_DEFINE_STRUCT(
     (uia)(packets), cookie_packet_header,
-    (magic::cookie_packet, magic)
+    (uia::magic::cookie_packet, magic)
     (cnonce16_t, nonce)
     (box144_t, box)
 );
 
 BOOST_FUSION_DEFINE_STRUCT(
     (uia)(packets), initiate_packet_header,
-    (magic::initiate_packet, magic)
+    (uia::magic::initiate_packet, magic)
     (eckey_t, initiator_shortterm_public_key)
     (uia::packets::responder_cookie, responder_cookie)
     (cnonce8_t, nonce)
@@ -59,7 +59,7 @@ BOOST_FUSION_DEFINE_STRUCT(
 
 BOOST_FUSION_DEFINE_STRUCT(
     (uia)(packets), message_packet_header,
-    (magic::message_packet, magic)
+    (uia::magic::message_packet, magic)
     (eckey_t, shortterm_public_key)
     (cnonce8_t, nonce)
     (arsenal::fusionary::rest_t, box) // variable size box containing message

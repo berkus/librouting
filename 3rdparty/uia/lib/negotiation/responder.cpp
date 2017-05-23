@@ -110,14 +110,14 @@ responder::receive(boost::asio::const_buffer msg, uia::comm::socket_endpoint con
 
     auto magic = *boost::asio::buffer_cast<const comm::packet_magic_t*>(msg);
     switch (magic) {
-        case magic::hello_packet::value:
+        case uia::magic::hello_packet::value:
             return got_hello(msg, src);
-        case magic::cookie_packet::value: {
+        case uia::magic::cookie_packet::value: {
             auto initiator = host_->get_initiator(src);
             BOOST_LOG_TRIVIAL(debug) << "Found initiator " << initiator;
             return initiator->got_cookie(msg, src);
         }
-        case magic::initiate_packet::value:
+        case uia::magic::initiate_packet::value:
             return got_initiate(msg, src);
         // case magic::r0_packet::value:
             // a responder's ping packet for hole punching.
