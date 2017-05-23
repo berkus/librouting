@@ -471,8 +471,12 @@ namespace sodiumpp {
     class random_nonce : public nonce<sequentialbytes>
     {
     public:
-        random_nonce(const std::string& constant)
-            : nonce<sequentialbytes>(constant, randombytes(sequentialbytes))
+        random_nonce()
+            : nonce<sequentialbytes>()
+        {}
+        random_nonce(const encoded_bytes& constant, bool = false)
+            : nonce<sequentialbytes>(constant,
+                encoded_bytes(randombytes(sequentialbytes), encoding::binary))
         {}
     };
 
