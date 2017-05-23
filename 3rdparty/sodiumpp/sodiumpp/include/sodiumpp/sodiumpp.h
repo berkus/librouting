@@ -220,6 +220,13 @@ namespace sodiumpp {
          */
         public_key(const encoded_bytes& bytes_) : bytes(bytes_.to_binary()) {}
         /**
+         * Copy operator
+         */
+        public_key& operator=(public_key const& other) {
+            bytes = other.bytes;
+            return *this;
+        }
+        /**
          * Get the encoding encoded bytes of this public_key
          */
         encoded_bytes get(encoding enc=encoding::binary) const { return encoded_bytes(encode_from_binary(bytes, enc), enc); }
@@ -258,6 +265,14 @@ namespace sodiumpp {
          */
         secret_key(const secret_key<P>& other) : secret_bytes(other.secret_bytes), pk(other.pk) {}
         static_assert(P == key_purpose::box or P == key_purpose::sign, "purposes other than box and sign are not yet supported");
+        /**
+         * Copy operator
+         */
+        secret_key& operator=(secret_key const& other) {
+            secret_bytes = other.secret_bytes;
+            pk = other.pk;
+            return *this;
+        }
         /**
          * Default constructor: automatically generates new keypair.
          */
