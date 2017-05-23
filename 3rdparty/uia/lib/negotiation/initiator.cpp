@@ -144,13 +144,16 @@ initiator::send_hello()
 {
     BOOST_LOG_TRIVIAL(debug) << "Send HELLO to " << target_;
 
-    boxer<nonce64> seal(remote_id_.public_key(), short_term_secret_key, HELLO_NONCE_PREFIX);
-    auto box_contents = host_->host_identity().secret_key().pk.get() + string(32, '\0');
+    boxer<nonce64> seal(
+        encoded_bytes(remote_id_.public_key(), encoding::binary),
+        short_term_secret_key,
+        encoded_bytes(HELLO_NONCE_PREFIX, encoding::binary));
+    auto box_contents = host_->host_identity().secret_key().pk.get().to_binary() + string(32, '\0');
 
     uia::packets::hello_packet_header pkt;
     pkt.initiator_shortterm_public_key = as_array<32>(short_term_secret_key.pk.get().to_binary());
-    pkt.box                            = as_array<80>(seal.box(box_contents));
-    pkt.nonce                          = as_array<8>(seal.nonce_sequential());
+    pkt.box                            = as_array<80>(seal.box(box_contents).to_binary());
+    pkt.nonce                          = as_array<8>(seal.get_nonce().get_sequential().to_binary());
 
     socket_send(target_, pkt);
     retransmit_timer_.start();
@@ -169,10 +172,13 @@ initiator::got_cookie(boost::asio::const_buffer buf, uia::comm::socket_endpoint 
     arsenal::fusionary::read(cookie, buf);
 
     // open cookie box
-    string nonce = COOKIE_NONCE_PREFIX + as_string(cookie.nonce);
-
-    unboxer<recv_nonce> unseal(remote_id_.public_key(), short_term_secret_key, nonce);
-    string open = unseal.unbox(as_string(cookie.box));
+    unboxer<nonce128> unseal(
+        encoded_bytes(remote_id_.public_key(), encoding::binary),
+        short_term_secret_key,
+        encoded_bytes(COOKIE_NONCE_PREFIX, encoding::binary));
+    string open = unseal.unbox(
+        encoded_bytes(as_string(cookie.box), encoding::binary),
+        encoded_bytes(COOKIE_NONCE_PREFIX + as_string(cookie.nonce), encoding::binary));
 
     server_short_term_public_key = arsenal::subrange(open, 0, 32);
     minute_cookie_               = arsenal::subrange(open, 32, 96);
@@ -183,7 +189,10 @@ initiator::got_cookie(boost::asio::const_buffer buf, uia::comm::socket_endpoint 
     // optimistically spawn a channel here and let client prepare some data
     // to send in the initiate packet
     create_channel(
-        short_term_secret_key, server_short_term_public_key, remote_id_.public_key(), src);
+        short_term_secret_key,
+        encoded_bytes(server_short_term_public_key, encoding::binary),
+        encoded_bytes(remote_id_.public_key(), encoding::binary),
+        src);
     // channel should be created in "setting up" state to indicate that
     // no ACKs have been received from the other side yet.
 
@@ -194,9 +203,9 @@ initiator::got_cookie(boost::asio::const_buffer buf, uia::comm::socket_endpoint 
 }
 
 void
-initiator::create_channel(sodiumpp::secret_key local_short,
-                          sodiumpp::public_key remote_short,
-                          sodiumpp::public_key remote_long,
+initiator::create_channel(sodiumpp::box_secret_key local_short,
+                          sodiumpp::box_public_key remote_short,
+                          sodiumpp::box_public_key remote_long,
                           uia::comm::socket_endpoint const& responder_ep)
 {
     BOOST_LOG_TRIVIAL(debug) << "initiator::create_channel optimistically for " << responder_ep;
@@ -213,22 +222,29 @@ initiator::send_initiate(std::string cookie, std::string payload)
 {
     // Create vouch subpacket
     boxer<random_nonce<8>> vouchSeal(
-        remote_id_.public_key(), host_->host_identity().secret_key(), VOUCH_NONCE_PREFIX);
-    string vouch = vouchSeal.box(short_term_secret_key.pk.get());
+        encoded_bytes(remote_id_.public_key(), encoding::binary),
+        host_->host_identity().secret_key(),
+        encoded_bytes(VOUCH_NONCE_PREFIX, encoding::binary));
+    string vouch = vouchSeal.box(short_term_secret_key.pk.get().to_binary()).to_binary();
     assert(vouch.size() == 48);
 
     // Assemble initiate packet
     uia::packets::initiate_packet_header pkt;
-    pkt.initiator_shortterm_public_key = as_array<32>(short_term_secret_key.pk.get());
+    pkt.initiator_shortterm_public_key = as_array<32>(short_term_secret_key.pk.get().to_binary());
     pkt.responder_cookie.nonce         = as_array<16>(arsenal::subrange(cookie, 0, 16));
     pkt.responder_cookie.box           = as_array<80>(arsenal::subrange(cookie, 16));
 
-    auto box_contents = host_->host_identity().secret_key().pk.get() + vouchSeal.nonce_sequential()
-                        + vouch + payload;
-    boxer<nonce64> seal(server_short_term_public_key, short_term_secret_key, INITIATE_NONCE_PREFIX);
-    pkt.box = seal.box(box_contents);
+    auto box_contents = host_->host_identity().secret_key().pk.get().to_binary()
+                        + vouchSeal.get_nonce().get_sequential().to_binary()
+                        + vouch
+                        + payload;
+    boxer<nonce64> seal(
+        encoded_bytes(server_short_term_public_key, encoding::binary),
+        short_term_secret_key,
+        encoded_bytes(INITIATE_NONCE_PREFIX, encoding::binary));
+    pkt.box = seal.box(box_contents).to_binary();
     // @todo Round payload size to next or second next multiple of 16..
-    pkt.nonce = as_array<8>(seal.nonce_sequential());
+    pkt.nonce = as_array<8>(seal.get_nonce().get_sequential().to_binary());
 
     socket_send(target_, pkt);
     retransmit_timer_.start();

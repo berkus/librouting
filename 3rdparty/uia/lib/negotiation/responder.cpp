@@ -60,12 +60,14 @@ socket_channel::send_message(string payload)
     uia::packets::message_packet_header packet;
 
     boxer<random_nonce<16>> seal(
-        remote_key_, local_key_, MESSAGE_NONCE_PREFIX);
-    string box = seal.box(payload);
+        remote_key_,
+        local_key_,
+        encoded_bytes(MESSAGE_NONCE_PREFIX, encoding::binary));
+    auto box = seal.box(payload);
 
     packet.shortterm_public_key = as_array<32>(local_key_.pk.get().to_binary());
-    packet.box = box;
-    packet.nonce = as_array<8>(seal.nonce_sequential());
+    packet.box = box.to_binary();
+    packet.nonce = as_array<8>(seal.get_nonce().get_sequential().to_binary());
 
     socket_send(comm::socket_endpoint(socket_, remote_ep_), packet);
 }
@@ -134,17 +136,21 @@ responder::got_hello(boost::asio::const_buffer msg, uia::comm::socket_endpoint c
     uia::packets::hello_packet_header hello;
     arsenal::fusionary::read(hello, msg);
 
-    string clientKey = as_string(hello.initiator_shortterm_public_key);
-    string nonce     = HELLO_NONCE_PREFIX + as_string(hello.nonce);
+    auto clientKey = encoded_bytes(as_string(hello.initiator_shortterm_public_key), encoding::binary);
 
-    unboxer<nonce<16>> unseal(clientKey, host_->host_identity().secret_key(), nonce);
-    string open = unseal.unbox(as_string(hello.box));
+    unboxer<nonce128> unseal(
+        box_public_key(clientKey),
+        host_->host_identity().secret_key(),
+        encoded_bytes("", encoding::binary));
+    auto open = unseal.unbox(
+        encoded_bytes(as_string(hello.box), encoding::binary),
+        encoded_bytes(HELLO_NONCE_PREFIX + as_string(hello.nonce), encoding::binary));
 
     // Open box contains client's long-term public key which we should check against a blacklist
 
     // Send cookie packet if we're willing to accept connection.
     // We never resend the cookie (spec 3.1.1), initiator will repeat hello if packets get lost.
-    send_cookie(clientKey, src);
+    send_cookie(clientKey.to_binary(), src);
 }
 
 void
@@ -153,26 +159,30 @@ responder::send_cookie(string clientKey, uia::comm::socket_endpoint const& src)
     BOOST_LOG_TRIVIAL(debug) << "Responder sending cookie to " << src;
     uia::packets::cookie_packet_header packet;
     uia::packets::responder_cookie cookie;
-    secret_key sessionKey; // Generate short-term server key
+    box_secret_key sessionKey; // Generate short-term server key
 
     // minute-key secretbox nonce
-    random_nonce<8> minuteKeyNonce(MINUTEKEY_NONCE_PREFIX);
+    random_nonce<8> minuteKeyNonce(encoded_bytes(MINUTEKEY_NONCE_PREFIX, encoding::binary));
     // Client short-term public key + Server short-term secret key
     cookie.box = as_array<80>(
-        crypto_secretbox(clientKey + sessionKey.get(), minuteKeyNonce.get(), minute_key.get()));
+        crypto_secretbox(clientKey + sessionKey.get().to_binary(),
+            minuteKeyNonce.get().to_binary(),
+            minute_key.get().to_binary()));
 
     // Compressed cookie nonce
-    cookie.nonce = as_array<16>(minuteKeyNonce.sequential());
+    cookie.nonce = as_array<16>(minuteKeyNonce.get_sequential().to_binary());
 
     boxer<random_nonce<8>> seal(
-        clientKey, host_->host_identity().secret_key(), COOKIE_NONCE_PREFIX);
+        encoded_bytes(clientKey, encoding::binary),
+        host_->host_identity().secret_key(),
+        encoded_bytes(COOKIE_NONCE_PREFIX, encoding::binary));
 
     // Server short-term public key + cookie
     // Box the cookies
-    string box = seal.box(sessionKey.pk.get() + as_string(cookie));
+    string box = seal.box(sessionKey.pk.get().to_binary() + as_string(cookie)).to_binary();
     assert(box.size() == 96 + 32 + 16);
 
-    packet.nonce = as_array<16>(seal.nonce_sequential());
+    packet.nonce = as_array<16>(seal.get_nonce().get_sequential().to_binary());
     packet.box   = as_array<144>(box);
 
     socket_send(src, packet);
@@ -188,8 +198,10 @@ responder::got_initiate(boost::asio::const_buffer buf, uia::comm::socket_endpoin
     // Try to open the cookie
     string nonce = MINUTEKEY_NONCE_PREFIX + as_string(init.responder_cookie.nonce);
 
-    string cookie =
-        crypto_secretbox_open(as_string(init.responder_cookie.box), nonce, minute_key.get());
+    string cookie = crypto_secretbox_open(
+        as_string(init.responder_cookie.box),
+        nonce,
+        minute_key.get().to_binary());
 
     // Check that cookie and client match
     if (as_string(init.initiator_shortterm_public_key) != string(arsenal::subrange(cookie, 0, 32)))
@@ -198,23 +210,29 @@ responder::got_initiate(boost::asio::const_buffer buf, uia::comm::socket_endpoin
     // Extract server short-term key
     string secret_k = arsenal::subrange(cookie, 32, 32);
     string public_k = crypto_scalarmult_base(secret_k);
-    short_term_key = secret_key(public_k, secret_k);
+    short_term_key = box_secret_key(
+        encoded_bytes(public_k, encoding::binary),
+        encoded_bytes(secret_k, encoding::binary));
 
     // Open the Initiate box using both short-term keys
     string initiateNonce = INITIATE_NONCE_PREFIX + as_string(init.nonce);
 
-    unboxer<recv_nonce> unseal(
-        as_string(init.initiator_shortterm_public_key), short_term_key, initiateNonce);
-    string msg = unseal.unbox(as_string(init.box));
+    unboxer<nonce128> unseal(
+        encoded_bytes(as_string(init.initiator_shortterm_public_key), encoding::binary),
+        short_term_key,
+        encoded_bytes(initiateNonce, encoding::binary));
+    string msg = unseal.unbox(encoded_bytes(as_string(init.box), encoding::binary));
 
     // Extract client long-term public key and check the vouch subpacket.
     string client_long_term_key = arsenal::subrange(msg, 0, 32);
 
     string vouchNonce = VOUCH_NONCE_PREFIX + string(arsenal::subrange(msg, 32, 16));
 
-    unboxer<recv_nonce> vouchUnseal(
-        client_long_term_key, host_->host_identity().secret_key(), vouchNonce);
-    string vouch = vouchUnseal.unbox(arsenal::subrange(msg, 48, 48));
+    unboxer<nonce128> vouchUnseal(
+        encoded_bytes(client_long_term_key, encoding::binary),
+        host_->host_identity().secret_key(),
+        encoded_bytes(vouchNonce, encoding::binary));
+    auto vouch = vouchUnseal.unbox(encoded_bytes(arsenal::subrange(msg, 48, 48), encoding::binary));
 
     if (vouch != as_string(init.initiator_shortterm_public_key))
         return warning("vouch subpacket invalid");
@@ -224,7 +242,11 @@ responder::got_initiate(boost::asio::const_buffer buf, uia::comm::socket_endpoin
     BOOST_LOG_TRIVIAL(debug) << "Responder VALIDATED initiate packet from " << src;
 
     // Channel needs two pairs of short-term keys and remote endpoint to operate
-    channel_ = create_channel(short_term_key, client_short_term_key, client_long_term_key, src);
+    channel_ = create_channel(
+        short_term_key,
+        encoded_bytes(client_short_term_key, encoding::binary),
+        encoded_bytes(client_long_term_key, encoding::binary),
+        src);
 
     // All is good, what's in the payload?
     // @todo Pass payload to the channel.

@@ -11,6 +11,7 @@
 #include <boost/log/trivial.hpp>
 
 using namespace std;
+using namespace sodiumpp;
 using arsenal::byte_array;
 
 namespace uia {
@@ -62,7 +63,7 @@ peer_identity::set_key(string const& key)
 peer_identity
 peer_identity::generate()
 {
-    sodiumpp::box_secret_key k;
+    box_secret_key k;
     return peer_identity(k.pk.get().to_binary(), k.get().to_binary());
 }
 
@@ -72,10 +73,12 @@ peer_identity::public_key() const
     return id_;
 }
 
-sodiumpp::box_secret_key
+box_secret_key
 peer_identity::secret_key() const
 {
-    return sodiumpp::box_secret_key(id_, private_key_);
+    return box_secret_key(
+        box_public_key(encoded_bytes(id_, encoding::binary)),
+        encoded_bytes(private_key_, encoding::binary));
 }
 
 //=================================================================================================
@@ -128,7 +131,7 @@ identity_host_state::init_identity(arsenal::settings_provider* settings)
 
     // Save it in our host settings
     settings->set("id", host_identity_.public_key());
-    settings->set("key", host_identity_.secret_key().get());
+    settings->set("key", host_identity_.secret_key().get().to_binary());
     settings->sync();
 }
 
