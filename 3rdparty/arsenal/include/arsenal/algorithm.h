@@ -63,12 +63,3 @@ set_to_vector(std::unordered_set<T> const& source)
 }
 
 } // arsenal namespace
-
-// Specialize tuple_size for boost::array<T,N>
-namespace std {
-
-template<class T, size_t N>
-class tuple_size<boost::array<T, N>> : public integral_constant<size_t, N>
-{};
-
-} // std namespace
