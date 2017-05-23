@@ -13,6 +13,8 @@ if (NOT BUILD_IN_UVVY)
     add_subdirectory(3rdparty/uia/lib)
 endif()
 
+find_package(Threads)
+
 include_directories(include)
 add_subdirectory(lib)
 add_subdirectory(tools/regserver)
