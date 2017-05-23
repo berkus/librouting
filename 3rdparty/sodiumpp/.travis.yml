@@ -21,6 +21,6 @@ before_install:
 
 script:
   - mkdir _build_
-  - docker run --rm -v $PWD:/repo -v ~/.travis:/travis berkus/docker-cpp-ci /bin/sh -c "cd /repo/_build_ && CC=clang CXX=clang++ cmake -G Ninja -DTRAVIS_CI=YES -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSODIUMPP_STATIC=ON -DSODIUMPP_TEST=ON -DSODIUMPP_EXAMPLE=ON .. && cmake --build ."
+  - docker run --rm -v $PWD:/repo -v ~/.travis:/travis berkus/docker-cpp-ci /bin/sh -c "cd /repo/_build_ && CC=clang CXX=clang++ cmake -G Ninja -DTRAVIS_CI=YES -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSODIUMPP_STATIC=OFF -DSODIUMPP_TEST=ON -DSODIUMPP_EXAMPLE=ON .. && cmake --build ."
   - docker run --rm -v $PWD:/repo -v ~/.travis:/travis berkus/docker-cpp-ci /bin/sh -c "/repo/_build_/tests --reporter=spec"
   - docker run --rm -v $PWD:/repo -v ~/.travis:/travis berkus/docker-cpp-ci /bin/sh -c "/repo/_build_/example"
