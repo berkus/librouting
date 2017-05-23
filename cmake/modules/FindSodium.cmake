@@ -23,7 +23,19 @@ if (NOT SODIUM_FOUND)
             /usr/local/opt/sodium/lib/
         NO_DEFAULT_PATH
     )
-    if (SODIUM_INCLUDE_DIRS AND SODIUM_LIBRARIES)
+    find_library(SODIUM_SHARED_LIBRARIES
+        NAMES sodium
+        PATHS
+            ${SODIUM_PREFIX}/lib
+            /usr/lib
+            /usr/lib/sodium
+            /usr/local/lib
+            /usr/local/lib/sodium
+            /opt/local/lib
+            /usr/local/opt/sodium/lib/
+        NO_DEFAULT_PATH
+    )
+    if (SODIUM_INCLUDE_DIRS AND (SODIUM_LIBRARIES OR SODIUM_SHARED_LIBRARIES))
         message(STATUS "Found Sodium")
         set(SODIUM_FOUND TRUE)
     endif()
